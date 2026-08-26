@@ -15,4 +15,4 @@ Juego de aprender Java resolviendo retos de código mientras tu personaje lucha 
 - Frontend en Cloudflare Pages: build command `npm run build`, output `dist`.
 
 ## Datos iniciales (niveles)
-Puedes insertar niveles en la base de datos H2 o con un data.sql.
+Puedes insertar niveles en la base de datos H2 o con un data.sql.# BugBuster-CodeDuel
