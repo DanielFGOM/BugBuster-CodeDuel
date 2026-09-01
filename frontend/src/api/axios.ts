@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'https://bugbuster-codeduel.onrender.com/api', // <-- HARDCODEADA
+  baseURL: 'https://bugbuster-codeduel.onrender.com', // <-- HARDCODEADA
   headers: { 'Content-Type': 'application/json' }
 });
 
