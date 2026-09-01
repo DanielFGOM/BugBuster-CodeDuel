@@ -6,7 +6,8 @@ import com.bugbuster.service.LevelService;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/agent")
+@RequestMapping("/api/auth")
+@CrossOrigin(origins = "*")
 public class AgentController {
 
     private final AgentService agentService;

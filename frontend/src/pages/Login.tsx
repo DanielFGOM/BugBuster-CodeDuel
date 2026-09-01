@@ -13,10 +13,12 @@ export default function Login() {
     e.preventDefault();
     try {
       const res = await api.post('/auth/login', { username, password });
-      login(res.data);
-      navigate('/game');
-    } catch (error) {
-      alert('Error en login');
+      login(res.data);        // guarda el token
+      navigate('/game');      // redirige al juego
+    } catch (error: any) {
+      // Muestra el error real si existe
+      const msg = error.response?.data || error.message || 'Error en login';
+      alert(msg);
     }
   };
 
@@ -24,10 +26,25 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-gray-900">
       <form onSubmit={handleSubmit} className="bg-gray-800 p-8 rounded shadow-md w-80">
         <h2 className="text-white text-2xl mb-4">Login</h2>
-        <input className="w-full p-2 mb-2 bg-gray-700 text-white border border-gray-600 rounded" placeholder="Usuario" value={username} onChange={e => setUsername(e.target.value)} />
-        <input className="w-full p-2 mb-4 bg-gray-700 text-white border border-gray-600 rounded" type="password" placeholder="Contraseña" value={password} onChange={e => setPassword(e.target.value)} />
-        <button type="submit" className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700">Entrar</button>
-        <p className="text-gray-400 mt-2 text-sm"><a href="/register" className="text-blue-400">Registrarse</a></p>
+        <input 
+          className="w-full p-2 mb-2 bg-gray-700 text-white border border-gray-600 rounded" 
+          placeholder="Usuario" 
+          value={username} 
+          onChange={e => setUsername(e.target.value)} 
+        />
+        <input 
+          className="w-full p-2 mb-4 bg-gray-700 text-white border border-gray-600 rounded" 
+          type="password" 
+          placeholder="Contraseña" 
+          value={password} 
+          onChange={e => setPassword(e.target.value)} 
+        />
+        <button type="submit" className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700">
+          Entrar
+        </button>
+        <p className="text-gray-400 mt-2 text-sm">
+          <a href="/register" className="text-blue-400">Registrarse</a>
+        </p>
       </form>
     </div>
   );
