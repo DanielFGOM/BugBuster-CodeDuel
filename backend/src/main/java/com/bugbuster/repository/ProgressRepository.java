@@ -4,6 +4,7 @@ import com.bugbuster.model.Progress;
 import com.bugbuster.model.User;
 import com.bugbuster.model.Level;
 import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.List;          // ← esta línea agregada
 import java.util.Optional;
 
 public interface ProgressRepository extends JpaRepository<Progress, Long> {
