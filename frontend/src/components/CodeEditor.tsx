@@ -2,7 +2,7 @@ import MonacoEditor from '@monaco-editor/react';
 
 interface Props {
   value: string;
-  onChange: (value: string) => void;
+  onChange: (value: string | undefined) => void;  // permitimos undefined
 }
 
 export default function CodeEditor({ value, onChange }: Props) {
