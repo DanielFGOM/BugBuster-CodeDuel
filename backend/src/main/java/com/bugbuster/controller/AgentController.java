@@ -4,9 +4,7 @@ import com.bugbuster.model.Level;
 import com.bugbuster.service.AgentService;
 import com.bugbuster.service.LevelService;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.RequestMethod;
 
-@CrossOrigin(origins = "*", allowedHeaders = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS})
 @RestController
 @RequestMapping("/api/agent")
 public class AgentController {
