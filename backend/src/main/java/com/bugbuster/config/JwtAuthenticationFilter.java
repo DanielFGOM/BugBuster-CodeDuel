@@ -15,7 +15,6 @@ import java.io.IOException;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-
     private final JwtUtil jwtUtil;
     private final UserDetailsService userDetailsService;
 
@@ -42,7 +41,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             try {
                 username = jwtUtil.extractUsername(jwt);
             } catch (Exception e) {
-                // Token malformado o expirado -> No autentica, pero permite que Spring Security maneje el 403/401
+                // Token inválido: simplemente no autentica y sigue la cadena
             }
         }
 
