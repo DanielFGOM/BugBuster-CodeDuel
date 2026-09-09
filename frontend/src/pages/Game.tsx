@@ -4,6 +4,7 @@ import CodeEditor from '../components/CodeEditor';
 import AgentChat from '../components/AgentChat';
 import GameCanvas from '../components/GameCanvas';
 import { useAuth } from '../hooks/useAuth';
+import toast from 'react-hot-toast';
 
 interface Level {
   id: number;
@@ -25,7 +26,7 @@ export default function Game() {
     api.get('/game/levels').then(res => {
       setLevels(res.data);
       if (res.data.length) setCurrentLevel(res.data[0]);
-    }).catch(() => alert("Error loading levels"));
+    }).catch(() => toast.error("Error conectando con el servidor"));
   }, []);
 
   const submitCode = async () => {
@@ -33,8 +34,13 @@ export default function Game() {
     try {
       const res = await api.post('/game/submit', { levelId: currentLevel.id, code });
       setResult(res.data);
+      if (res.data.success) {
+        toast.success('¡Código correcto! El Bug ha sido golpeado.');
+      } else {
+        toast.error('Error en la ejecución del código.');
+      }
     } catch (error) {
-      setResult({ success: false, message: "Submission error. Check connection." });
+      toast.error('Error al enviar el código al servidor');
     }
   };
 
@@ -45,34 +51,41 @@ export default function Game() {
   };
 
   return (
-    <div className="h-screen bg-slate-950 text-slate-200 flex flex-col font-sans overflow-hidden">
-      {/* Top Bar */}
-      <header className="h-16 bg-slate-900 border-b border-slate-800 flex justify-between items-center px-6 shrink-0">
+    <div className="h-screen bg-[#050505] text-slate-300 flex flex-col font-sans overflow-hidden">
+      
+      {/* TOP BAR - Estilo Terminal */}
+      <header className="h-16 bg-slate-900 border-b border-red-900/50 flex justify-between items-center px-6 shrink-0 shadow-[0_0_15px_rgba(220,38,38,0.1)]">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-cyan-500 rounded-lg rotate-45 shadow-[0_0_10px_#22d3ee]"></div>
+          <div className="w-8 h-8 bg-red-600 rounded-lg rotate-45 shadow-[0_0_10px_#dc2626] animate-pulse"></div>
           <h1 className="text-xl font-black tracking-tighter text-white uppercase">
-            Bug<span className="text-cyan-400">Buster</span> <span className="text-xs font-normal text-slate-500 ml-2">v1.0.4-stable</span>
+            Bug<span className="text-red-500">Buster</span> <span className="text-xs font-normal text-slate-500 ml-2">v1.0.4-stable</span>
           </h1>
         </div>
-        <button onClick={logout} className="text-xs font-bold uppercase tracking-widest bg-slate-800 hover:bg-red-900/40 hover:text-red-400 px-4 py-2 rounded-md border border-slate-700 transition-all">
-          Disconnect Session
+        <button 
+          onClick={logout} 
+          className="text-xs font-bold uppercase tracking-widest bg-slate-800 hover:bg-red-900/40 hover:text-red-400 px-4 py-2 rounded-md border border-slate-700 transition-all"
+        >
+          Cerrar Sesión
         </button>
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Level Sidebar */}
+        {/* SIDEBAR - Misiones */}
         <aside className="w-64 bg-slate-900/50 border-r border-slate-800 flex flex-col">
-          <div className="p-4 border-b border-slate-800">
-            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest">Mission Log</h3>
+          <div className="p-4 border-b border-slate-800 bg-slate-900/80">
+            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+              <span className="w-2 h-2 bg-red-500 rounded-full animate-ping"></span>
+              Mission Log
+            </h3>
           </div>
-          <div className="flex-1 overflow-y-auto p-3 space-y-2">
+          <div className="flex-1 overflow-y-auto p-3 space-y-2 custom-scrollbar">
             {levels.map(level => (
               <div 
                 key={level.id} 
                 onClick={() => selectLevel(level)}
                 className={`group cursor-pointer p-3 rounded-lg border transition-all duration-200 ${
                   currentLevel?.id === level.id 
-                  ? 'bg-cyan-500/10 border-cyan-500 text-cyan-400' 
+                  ? 'bg-red-500/10 border-red-600 text-red-400 shadow-[0_0_10px_rgba(220,38,38,0.1)]' 
                   : 'bg-slate-800/40 border-transparent hover:border-slate-600 text-slate-400'
                 }`}
               >
@@ -85,29 +98,33 @@ export default function Game() {
           </div>
         </aside>
 
-        {/* Main War Room */}
-        <main className="flex-1 flex flex-col p-6 gap-6 overflow-hidden relative">
+        {/* MAIN AREA - War Room */}
+        <main className="flex-1 flex flex-col p-6 gap-6 overflow-hidden relative bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-slate-900 via-black to-black">
           {currentLevel ? (
             <>
-              {/* Mission Card */}
-              <div className="bg-slate-900 border-l-4 border-cyan-500 p-5 rounded-r-xl shadow-lg animate-in fade-in slide-in-from-top-4 duration-500">
+              {/* Tarjeta de Misión */}
+              <div className="bg-slate-900 border-l-4 border-red-600 p-5 rounded-r-xl shadow-lg animate-in fade-in slide-in-from-top-4 duration-500">
                 <h2 className="text-2xl font-bold text-white mb-2 flex items-center gap-2">
-                  <span className="text-cyan-400">Mission:</span> {currentLevel.title}
+                  <span className="text-red-500">Misión:</span> {currentLevel.title}
                 </h2>
                 <p className="text-slate-400 leading-relaxed max-w-3xl">{currentLevel.description}</p>
               </div>
 
-              {/* Workspace Grid */}
+              {/* Espacio de Trabajo */}
               <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-0">
-                {/* Editor Section */}
+                
+                {/* Editor y Consola */}
                 <div className="flex flex-col gap-4 min-h-0">
-                  <div className="flex-1 rounded-xl overflow-hidden border border-slate-800 shadow-2xl relative">
+                  <div className="flex-1 rounded-xl overflow-hidden border border-slate-800 shadow-2xl relative group hover:border-red-900/50 transition-colors">
                     <CodeEditor value={code} onChange={setCode} />
                   </div>
                   
                   <div className="flex gap-3 shrink-0">
-                    <button onClick={submitCode} className="flex-1 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold py-3 rounded-xl transition-all transform active:scale-95 shadow-[0_0_20px_rgba(34,211,238,0.3)] uppercase tracking-wider">
-                      Execute Code
+                    <button 
+                      onClick={submitCode} 
+                      className="flex-1 bg-red-600 hover:bg-red-500 text-white font-bold py-3 rounded-xl transition-all transform active:scale-95 shadow-[0_0_20px_rgba(220,38,38,0.3)] uppercase tracking-wider"
+                    >
+                      Ejecutar Código
                     </button>
                     <button 
                       onClick={() => setCode(currentLevel.template.replace('//USER_CODE', ''))} 
@@ -132,9 +149,10 @@ export default function Game() {
                   )}
                 </div>
 
-                {/* Visualizer Section */}
+                {/* Visualizador y Chat */}
                 <div className="flex flex-col gap-6 min-h-0">
-                  <div className="flex-1 bg-slate-900 rounded-xl border border-slate-800 shadow-2xl relative overflow-hidden">
+                  <div className="flex-1 bg-slate-900 rounded-xl border border-slate-800 shadow-2xl relative overflow-hidden group hover:border-red-900/50 transition-colors">
+                    {/* Indicadores de estado estilo monitor */}
                     <div className="absolute top-3 left-3 z-10 flex gap-2">
                       <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
                       <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse delay-75"></div>
@@ -143,15 +161,15 @@ export default function Game() {
                     <GameCanvas levelId={currentLevel.id} result={result} />
                   </div>
                   
-                  <div className="h-1/3 bg-slate-900 rounded-xl border border-slate-800 shadow-2xl overflow-hidden">
+                  <div className="h-1/3 bg-slate-900 rounded-xl border border-slate-800 shadow-2xl overflow-hidden group hover:border-red-900/50 transition-colors">
                     <AgentChat levelId={currentLevel.id} />
                   </div>
                 </div>
               </div>
             </>
           ) : (
-            <div className="flex-1 flex items-center justify-center text-slate-500 animate-pulse">
-              Loading secure terminal...
+            <div className="flex-1 flex items-center justify-center text-slate-500 animate-pulse font-mono">
+              Cargando terminal de seguridad...
             </div>
           )}
         </main>
