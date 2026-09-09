@@ -1,17 +1,14 @@
 import React, { createContext, useContext, useState } from 'react';
 
-// Definimos la interfaz de forma simple
 interface AuthContextType {
   token: string | null;
   login: (token: string) => void;
   logout: () => void;
 }
 
-// Creamos el contexto
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Componente Proveedor
-export function AuthProvider({ children }: any) {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
 
   const login = (newToken: string) => {
@@ -31,7 +28,6 @@ export function AuthProvider({ children }: any) {
   );
 }
 
-// Hook para usar el contexto
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {

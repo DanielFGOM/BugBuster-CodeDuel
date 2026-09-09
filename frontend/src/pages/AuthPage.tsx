@@ -1,19 +1,37 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import toast from 'react-hot-toast';
 import api from '../api/axios';
 import { useAuth } from '../hooks/useAuth';
 
+// --- Componente de Notificación Interno (Para no depender de librerías externas) ---
+function Notification({ message, type, onClose }: { message: string, type: 'success' | 'error', onClose: () => void }) {
+  return (
+    <div className={`fixed top-5 right-5 z-[100] px-6 py-3 rounded-lg shadow-2xl text-white text-sm font-medium animate-in fade-in slide-in-from-right-5 duration-300 ${type === 'success' ? 'bg-emerald-600' : 'bg-red-600'}`}>
+      {message}
+    </div>
+  );
+}
+
 export default function AuthPage() {
+  // Estados de la vista y formulario
   const [view, setView] = useState<'login' | 'register'>('login');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   
+  // Estado para notificaciones
+  const [notification, setNotification] = useState<{msg: string, type: 'success' | 'error'} | null>(null);
+
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  // --- Lógica de la Terminal Animada ---
+  // Función para disparar notificaciones
+  const showNotify = (msg: string, type: 'success' | 'error') => {
+    setNotification({ msg, type });
+    setTimeout(() => setNotification(null), 3000);
+  };
+
+  // --- Lógica de la Terminal Animada (Exactamente como la pediste) ---
   const [text, setText] = useState('');
   const [step, setStep] = useState(0);
   const snippets = [
@@ -33,7 +51,7 @@ export default function AuthPage() {
         clearInterval(interval);
         setTimeout(() => setStep(s => s + 1), 1000);
       }
-    }, 50);
+    }, 42); // Velocidad exacta de tu código original
     return () => clearInterval(interval);
   }, [step]);
 
@@ -42,11 +60,11 @@ export default function AuthPage() {
     e.preventDefault();
     try {
       const res = await api.post('/auth/login', { username, password });
-      login(res.data);
-      toast.success('¡Bienvenido de nuevo, Agente!');
-      navigate('/game');
+      login(res.data); // Actualiza el contexto global (instantáneo)
+      showNotify('¡Bienvenido de nuevo, Agente!', 'success');
+      setTimeout(() => navigate('/game'), 1000);
     } catch (error: any) {
-      toast.error(error.response?.data || 'Error de autenticación');
+      showNotify(error.response?.data || 'Error de autenticación', 'error');
     }
   };
 
@@ -54,37 +72,40 @@ export default function AuthPage() {
     e.preventDefault();
     try {
       await api.post('/auth/register', { username, email, password });
-      toast.success('Cuenta creada con éxito. Ahora inicia sesión.');
-      setView('login');
+      showNotify('Cuenta creada con éxito. Ahora inicia sesión.', 'success');
+      setTimeout(() => setView('login'), 1500);
     } catch (error: any) {
-      toast.error(error.response?.data || 'Error en el registro');
+      showNotify(error.response?.data || 'Error en el registro', 'error');
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#F3F1EC] p-6 font-sans">
-      <div className="relative w-full max-w-[1000px] min-h-[560px] rounded-[18px] overflow-hidden bg-white border border-[#E7E4DC] shadow-sm">
-        
-        {/* PANEL IZQUIERDO */}
+      {/* Renderizado de la notificación si existe */}
+      {notification && <Notification message={notification.msg} type={notification.type} onClose={() => setNotification(null)} />}
+
+      <div className="relative w-full max-w-[1000px] min-h-[560px] rounded-[18px] overflow-hidden bg-white border border-[#E7E4DC]">
+
+        {/* PANEL IZQUIERDO (Copiado exactamente de tu HTML) */}
         <div 
           className="absolute inset-y-0 left-0 w-[56%] bg-gradient-to-br from-[#2E4A78] via-[#1E304F] to-[#121D33] text-white flex flex-col justify-between px-10 py-10 pr-16 overflow-hidden"
           style={{ clipPath: 'polygon(0 0, 100% 0, 84% 100%, 0% 100%)' }}
         >
           <div className="absolute w-72 h-72 rounded-full bg-[#4A6BA8]/25 blur-3xl -top-16 -left-16 pointer-events-none" />
-          
+
           <div className="relative z-10">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-lg bg-[#F0973D] flex items-center justify-center font-mono font-semibold text-[#17233B] text-sm">&lt;/&gt;</div>
-              <span className="font-bold text-[17px] tracking-tight">BugBuster</span>
+              <span className="font-bold text-[17px]">BugBuster</span>
             </div>
             <h1 className="font-semibold text-[22px] leading-snug mt-5 max-w-[19ch]">
               Aprende Java desde cero y demuestra lo que sabes.
             </h1>
           </div>
 
-          {/* Ruta de aprendizaje */}
+          {/* Ruta de aprendizaje animada */}
           <div className="relative z-10 w-full">
-            <p className="font-mono text-[10px] text-[#F5CFA3] mb-4 tracking-wide uppercase">Tu ruta de aprendizaje</p>
+            <p className="font-mono text-[10px] text-[#F5CFA3] mb-4 tracking-wide">tu ruta de aprendizaje</p>
             <div className="flex items-center justify-between mb-8">
               {[
                 { id: 1, name: 'Variables' },
@@ -107,32 +128,31 @@ export default function AuthPage() {
               })}
             </div>
 
-            {/* Terminal Animada */}
-            <div className="bg-black/25 rounded-lg px-3.5 py-3 font-mono text-[11.5px] leading-relaxed overflow-hidden border border-white/5">
+            <div className="bg-black/25 rounded-lg px-3.5 py-3 font-mono text-[11.5px] leading-relaxed whitespace-nowrap overflow-hidden">
               <span className="text-[#F5CFA3]">{text}</span>
-              <span className="inline-block w-1 h-3 bg-white animate-pulse ml-1 align-middle" />
+              <span className="inline-block w-1 h-3 bg-white animate-pulse ml-1 align-middle"></span>
             </div>
           </div>
         </div>
 
-        {/* PANEL DERECHO */}
+        {/* PANEL DERECHO (Copiado exactamente de tu HTML) */}
         <div className="ml-[56%] px-14 py-14 min-h-[560px] flex flex-col justify-center">
           {view === 'login' ? (
-            <div className="transition-all duration-500 animate-in fade-in slide-in-from-right-4">
+            <div className="block animate-in fade-in slide-in-from-right-4 duration-500">
               <h2 className="font-semibold text-[21px] text-[#1E2233] mb-7">Inicia sesión</h2>
               <form onSubmit={handleLogin} className="space-y-5">
-                <div>
-                  <label className="block text-xs text-[#8A8A94] mb-1.5">Usuario o Correo</label>
+                <div className="mb-5">
+                  <label className="block text-xs text-[#8A8A94] mb-1.5">Correo</label>
                   <input 
                     type="text" 
-                    placeholder="Escribe tu usuario aquí"
+                    placeholder="Escribe tu correo aquí"
                     className="w-full py-2.5 border-0 border-b border-[#E7E4DC] bg-transparent text-sm text-[#1E2233] placeholder-[#BAB8B0] focus:border-[#243A5E] outline-none transition-colors"
                     value={username}
                     onChange={e => setUsername(e.target.value)}
                     required
                   />
                 </div>
-                <div>
+                <div className="mb-5">
                   <label className="block text-xs text-[#8A8A94] mb-1.5">Contraseña</label>
                   <input 
                     type="password" 
@@ -147,9 +167,9 @@ export default function AuthPage() {
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input type="checkbox" className="w-auto" /> Recordarme
                   </label>
-                  <a href="#" className="text-[#243A5E] hover:underline">Olvidé mi contraseña</a>
+                  <a href="#" className="text-[#243A5E]">Olvidé mi contraseña</a>
                 </div>
-                <button className="w-full py-3 rounded-lg bg-[#243A5E] hover:bg-[#17233B] text-white text-sm font-semibold transition-all active:scale-[0.98] shadow-md">
+                <button className="w-full py-3 rounded-lg bg-[#243A5E] hover:bg-[#17233B] border border-[#243A5E] hover:border-[#17233B] text-white text-sm font-semibold transition-colors">
                   Entrar a BugBuster
                 </button>
               </form>
@@ -159,32 +179,32 @@ export default function AuthPage() {
               </p>
             </div>
           ) : (
-            <div className="transition-all duration-500 animate-in fade-in slide-in-from-right-4">
+            <div className="block animate-in fade-in slide-in-from-right-4 duration-500">
               <h2 className="font-semibold text-[21px] text-[#1E2233] mb-7">Crea tu cuenta</h2>
               <form onSubmit={handleRegister} className="space-y-5">
-                <div>
+                <div className="mb-5">
                   <label className="block text-xs text-[#8A8A94] mb-1.5">Nombre de usuario</label>
                   <input 
                     type="text" 
-                    placeholder="Escribe tu nombre de usuario"
+                    placeholder="Escribe tu nombre de usuario aquí"
                     className="w-full py-2.5 border-0 border-b border-[#E7E4DC] bg-transparent text-sm text-[#1E2233] placeholder-[#BAB8B0] focus:border-[#243A5E] outline-none transition-colors"
                     value={username}
                     onChange={e => setUsername(e.target.value)}
                     required
                   />
                 </div>
-                <div>
+                <div className="mb-5">
                   <label className="block text-xs text-[#8A8A94] mb-1.5">Correo</label>
                   <input 
                     type="email" 
-                    placeholder="email@ejemplo.com"
+                    placeholder="Escribe tu correo aquí"
                     className="w-full py-2.5 border-0 border-b border-[#E7E4DC] bg-transparent text-sm text-[#1E2233] placeholder-[#BAB8B0] focus:border-[#243A5E] outline-none transition-colors"
                     value={email}
                     onChange={e => setEmail(e.target.value)}
                     required
                   />
                 </div>
-                <div>
+                <div className="mb-6">
                   <label className="block text-xs text-[#8A8A94] mb-1.5">Contraseña</label>
                   <input 
                     type="password" 
@@ -195,7 +215,7 @@ export default function AuthPage() {
                     required
                   />
                 </div>
-                <button className="w-full py-3 rounded-lg bg-[#243A5E] hover:bg-[#17233B] text-white text-sm font-semibold transition-all active:scale-[0.98] shadow-md">
+                <button className="w-full py-3 rounded-lg bg-[#243A5E] hover:bg-[#17233B] border border-[#243A5E] hover:border-[#17233B] text-white text-sm font-semibold transition-colors">
                   Crear cuenta
                 </button>
               </form>
