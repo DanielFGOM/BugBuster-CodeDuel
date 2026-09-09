@@ -17,6 +17,7 @@ public class LearnJavaApplication {
     @Bean
     public CommandLineRunner initData(LevelRepository levelRepository) {
         return args -> {
+            // Solo inserta si la tabla de niveles en PostgreSQL está vacía
             if (levelRepository.count() == 0) {
                 save(levelRepository, 1, "Hola Mundo", "Usa System.out.println() para imprimir: Hola Mundo", 
                     "public class DynamicSolution {\n    public static void main(String[] args) {\n        //USER_CODE\n    }\n}", "Hola Mundo", "System.out.println(\"Hola Mundo\");");
@@ -48,7 +49,7 @@ public class LearnJavaApplication {
                 save(levelRepository, 10, "Strings UpperCase", "Convierte \"java\" a mayúsculas.", 
                     "public class DynamicSolution {\n    public static void main(String[] args) {\n        String texto = \"java\";\n        //USER_CODE\n    }\n}", "JAVA", "System.out.println(texto.toUpperCase());");
 
-                System.out.println("🚀 10 niveles cargados en H2");
+                System.out.println("🚀 PostgreSQL: 10 niveles cargados permanentemente");
             }
         };
     }
