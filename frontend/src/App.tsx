@@ -5,6 +5,7 @@ import AuthPage from './pages/AuthPage';
 import Game from './pages/Game';
 import Profile from './pages/Profile';
 
+
 function AppRoutes() {
   const { token } = useAuth();
 
