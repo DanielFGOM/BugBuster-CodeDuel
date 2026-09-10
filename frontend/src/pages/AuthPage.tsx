@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../hooks/useAuth';
 
-// Notificación corregida (sin variables no usadas para evitar errores de build)
 function Notification({ message, type }: { message: string, type: 'success' | 'error' }) {
   return (
     <div className={`fixed top-5 right-5 z-[100] px-6 py-3 rounded-lg shadow-2xl text-white text-sm font-medium animate-in fade-in slide-in-from-right-5 duration-300 ${type === 'success' ? 'bg-emerald-600' : 'bg-red-600'}`}>
@@ -27,15 +26,9 @@ export default function AuthPage() {
     setTimeout(() => setNotification(null), 3000);
   };
 
-  // --- LÓGICA DE TERMINAL EXACTA ---
   const [text, setText] = useState('');
   const [step, setStep] = useState(0);
-  const snippets = [
-    'int nivel = 1;',
-    'if (nivel < 5) { subir(); }',
-    'for (int i = 0; i < 3; i++) {}',
-    'public class Jugador { }'
-  ];
+  const snippets = ['int nivel = 1;', 'if (nivel < 5) { subir(); }', 'for (int i = 0; i < 3; i++) {}', 'public class Jugador { }'];
 
   useEffect(() => {
     let i = 0;
@@ -54,12 +47,13 @@ export default function AuthPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      // IMPORTANTE: Enviamos username y password
       const res = await api.post('/auth/login', { username, password });
       login(res.data); 
       showNotify('¡Bienvenido de nuevo, Agente!', 'success');
       setTimeout(() => navigate('/game'), 1000);
     } catch (error: any) {
-      showNotify(error.response?.data || 'Error de autenticación', 'error');
+      showNotify(error.response?.data || 'Error de servidor (500). Revisa las variables de Render', 'error');
     }
   };
 
@@ -67,10 +61,10 @@ export default function AuthPage() {
     e.preventDefault();
     try {
       await api.post('/auth/register', { username, email, password });
-      showNotify('Cuenta creada con éxito. Ahora inicia sesión.', 'success');
-      setTimeout(() => setView('login'), 1500);
+      showNotify('Cuenta creada con éxito.', 'success');
+      setView('login');
     } catch (error: any) {
-      showNotify(error.response?.data || 'Error en el registro', 'error');
+      showNotify(error.response?.data || 'Error al registrar la cuenta', 'error');
     }
   };
 
@@ -78,15 +72,13 @@ export default function AuthPage() {
     <div className="min-h-screen flex items-center justify-center bg-[#F3F1EC] p-6 font-['Inter']">
       {notification && <Notification message={notification.msg} type={notification.type} />}
 
-      <div className="relative w-full max-w-[1000px] min-h-[560px] rounded-[18px] overflow-hidden bg-white border border-[#E7E4DC]">
-        
-        {/* PANEL IZQUIERDO - Diseño Exacto HTML */}
+      <div className="relative w-full max-w-[1000px] min-h-[560px] rounded-[18px] overflow-hidden bg-white border border-[#E7E4DC] shadow-sm">
+        {/* PANEL IZQUIERDO */}
         <div 
           className="absolute inset-y-0 left-0 w-[56%] bg-gradient-to-br from-[#2E4A78] via-[#1E304F] to-[#121D33] text-white flex flex-col justify-between px-10 py-10 pr-16 overflow-hidden"
           style={{ clipPath: 'polygon(0 0, 100% 0, 84% 100%, 0% 100%)' }}
         >
           <div className="absolute w-72 h-72 rounded-full bg-[#4A6BA8]/25 blur-3xl -top-16 -left-16 pointer-events-none" />
-
           <div className="relative z-10">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-lg bg-[#F0973D] flex items-center justify-center font-['IBM_Plex_Mono'] font-semibold text-[#17233B] text-sm">&lt;/&gt;</div>
@@ -100,12 +92,7 @@ export default function AuthPage() {
           <div className="relative z-10 w-full">
             <p className="font-['IBM_Plex_Mono'] text-[10px] text-[#F5CFA3] mb-4 tracking-wide">tu ruta de aprendizaje</p>
             <div className="flex items-center justify-between mb-8">
-              {[
-                { id: 1, name: 'Variables' },
-                { id: 2, name: 'Condicionales' },
-                { id: 3, name: 'Bucles' },
-                { id: 4, name: 'Clases' }
-              ].map((node, idx) => {
+              {[{ id: 1, name: 'Variables' }, { id: 2, name: 'Condicionales' }, { id: 3, name: 'Bucles' }, { id: 4, name: 'Clases' }].map((node, idx) => {
                 const isActive = (step % 4) === idx;
                 return (
                   <React.Fragment key={node.id}>
@@ -127,17 +114,17 @@ export default function AuthPage() {
           </div>
         </div>
 
-        {/* PANEL DERECHO - Diseño Exacto HTML */}
+        {/* PANEL DERECHO */}
         <div className="ml-[56%] px-14 py-14 min-h-[560px] flex flex-col justify-center">
           {view === 'login' ? (
             <div className="block animate-in fade-in slide-in-from-right-4 duration-500">
               <h2 className="font-['Space_Grotesk'] font-semibold text-[21px] text-[#1E2233] mb-7">Inicia sesión</h2>
               <form onSubmit={handleLogin} className="space-y-5">
                 <div className="mb-5">
-                  <label className="block text-xs text-[#8A8A94] mb-1.5">Correo</label>
+                  <label className="block text-xs text-[#8A8A94] mb-1.5">Nombre de Usuario</label>
                   <input 
-                    type="email" 
-                    placeholder="Escribe tu correo aquí"
+                    type="text" 
+                    placeholder="Tu usuario de BugBuster"
                     className="w-full py-2.5 border-0 border-b border-[#E7E4DC] bg-transparent text-sm text-[#1E2233] placeholder-[#BAB8B0] focus:border-[#243A5E] outline-none transition-colors"
                     value={username}
                     onChange={e => setUsername(e.target.value)}
@@ -161,7 +148,7 @@ export default function AuthPage() {
                   </label>
                   <a href="#" className="text-[#243A5E]">Olvidé mi contraseña</a>
                 </div>
-                <button className="w-full py-3 rounded-lg bg-[#243A5E] hover:bg-[#17233B] border border-[#243A5E] hover:border-[#17233B] text-white text-sm font-semibold transition-colors">
+                <button className="w-full py-3 rounded-lg bg-[#243A5E] hover:bg-[#17233B] border border-[#243A5E] text-white text-sm font-semibold transition-colors">
                   Entrar a BugBuster
                 </button>
               </form>
@@ -207,7 +194,7 @@ export default function AuthPage() {
                     required
                   />
                 </div>
-                <button className="w-full py-3 rounded-lg bg-[#243A5E] hover:bg-[#17233B] border border-[#243A5E] hover:border-[#17233B] text-white text-sm font-semibold transition-colors">
+                <button className="w-full py-3 rounded-lg bg-[#243A5E] hover:bg-[#17233B] border border-[#243A5E] text-white text-sm font-semibold transition-colors">
                   Crear cuenta
                 </button>
               </form>
