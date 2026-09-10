@@ -1,5 +1,5 @@
-import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './hooks/useAuth';
 import AuthPage from './pages/AuthPage';
 import Game from './pages/Game';
@@ -23,6 +23,7 @@ function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+        <Toaster position="top-right" reverseOrder={false} />
         <AppRoutes />
       </BrowserRouter>
     </AuthProvider>
