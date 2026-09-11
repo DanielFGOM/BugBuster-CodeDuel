@@ -22,6 +22,6 @@ export const gameService = {
   },
   async submitSolution(levelId: number, code: string): Promise<SubmitResult> {
     const res = await api.post('/game/submit', { levelId, code });
-    return res.//data;
+    return res.data;
   }
 };

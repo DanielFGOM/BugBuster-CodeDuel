@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useGameLogic } from '../hooks/useGameLogic';
 import CodeEditor from '../components/CodeEditor';
@@ -8,7 +7,6 @@ export default function Game() {
   const { logout } = useAuth();
   const { levels, currentLevel, code, setCode, result, submitCode, selectLevel } = useGameLogic();
 
-  // Ejemplos dinámicos por nivel
   const getExampleForLevel = (id: number) => {
     const examples: Record<number, string> = {
       1: 'System.out.println("Hola Mundo");',
@@ -25,7 +23,6 @@ export default function Game() {
 
   return (
     <div className="h-screen bg-[#f9fafa] text-[#20303c] flex flex-col font-sans overflow-hidden">
-      {/* TOPBAR */}
       <header className="h-14 bg-white border-b border-[#E3E7E9] px-6 flex justify-between items-center shrink-0 z-10">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-[#F2A65A] flex items-center justify-center font-mono font-bold text-[#1B2A41] text-sm">&lt;/&gt;</div>
@@ -35,7 +32,6 @@ export default function Game() {
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* SIDEBAR */}
         <aside className="w-64 bg-white border-r border-[#E3E7E9] p-4 flex flex-col">
           <div className="text-[11px] font-bold text-[#5b6b76] uppercase tracking-widest px-3 mb-3">Misiones</div>
           <div className="flex-1 overflow-y-auto space-y-1 custom-scrollbar">
@@ -56,9 +52,7 @@ export default function Game() {
           </div>
         </aside>
 
-        {/* MAIN AREA */}
         <main className="flex-1 flex overflow-hidden">
-          {/* PANEL IZQUIERDO - Briefing */}
           <div className="w-[420px] p-7 border-r border-[#E3E7E9] overflow-y-auto bg-white">
             {currentLevel ? (
               <div className="animate-in fade-in slide-in-from-left-4 duration-500">
@@ -97,7 +91,6 @@ export default function Game() {
             )}
           </div>
 
-          {/* PANEL DERECHO - Editor y Consola */}
           <div className="flex-1 flex flex-col bg-[#282a36]">
             <div className="h-12 bg-[#1e1f29] flex justify-between items-center px-4 border-b border-[#191a21]">
               <div className="bg-[#44475a] text-[#f8f8f2] text-xs font-bold px-3 py-1 rounded-md">Main.java</div>
