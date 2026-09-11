@@ -6,18 +6,22 @@ interface Props {
 }
 
 export default function CodeEditor({ value, onChange }: Props) {
-  const handleChange = (val: string | undefined) => {
-    onChange(val || ''); // si es undefined, lo convertimos a string vacío
-  };
-
   return (
     <MonacoEditor
-      height="400px"
+      height="100%"
+      width="100%"
       language="java"
       value={value}
-      onChange={handleChange}
+      onChange={(val) => onChange(val || '')}
       theme="vs-dark"
-      options={{ minimap: { enabled: false } }}
+      options={{ 
+        minimap: { enabled: false },
+        fontSize: 14,
+        lineNumbers: 'on',
+        scrollBeyondLastLine: false,
+        automaticLayout: true,
+        padding: { top: 20 }
+      }}
     />
   );
 }

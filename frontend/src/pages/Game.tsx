@@ -1,8 +1,7 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import api from '../api/axios';
 import CodeEditor from '../components/CodeEditor';
-import AgentChat from '../components/AgentChat';
 import GameCanvas from '../components/GameCanvas';
 import { useAuth } from '../hooks/useAuth';
 
@@ -23,101 +22,182 @@ export default function Game() {
   const { logout } = useAuth();
 
   useEffect(() => {
-    api.get('/game/levels').then(res => {
-      setLevels(res.data);
-      if (res.data.length) setCurrentLevel(res.data[0]);
-    }).catch(() => toast.error("Error al conectar con el servidor"));
+    loadLevels();
   }, []);
 
-  const submitCode = async () => {
-    if (!currentLevel) return;
+  const loadLevels = async () => {
     try {
-      const res = await api.post('/game/submit', { levelId: currentLevel.id, code });
-      setResult(res.data);
-      if (res.data.success) toast.success('¡Código correcto! Bug eliminado.');
-      else toast.error('El código no es correcto.');
+      const res = await api.get('/game/levels');
+      setLevels(res.data);
+      if (res.data.length > 0) {
+        const firstLevel = res.data[0];
+        setCurrentLevel(firstLevel);
+        setCode(firstLevel.template.replace('//USER_CODE', ''));
+      }
     } catch (error) {
-      toast.error('Error al enviar el código.');
+      toast.error("Error al cargar las misiones");
     }
   };
 
+  const handleRunCode = async () => {
+    if (!currentLevel) return;
+    setResult(null); 
+    try {
+      const res = await api.post('/game/submit', { levelId: currentLevel.id, code });
+      setResult(res.data);
+      if (res.data.success) {
+        toast.success('¡Misión Completada!');
+      } else {
+        toast.error('El código tiene errores o la salida no es la esperada.');
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data || "Error en el servidor de compilación");
+    }
+  };
+
+  const selectLevel = (level: Level) => {
+    setCurrentLevel(level);
+    setCode(level.template.replace('//USER_CODE', ''));
+    setResult(null);
+  };
+
   return (
-    <div className="h-screen bg-[#F3F1EC] text-[#1E2233] flex flex-col font-['Inter'] overflow-hidden">
-      <header className="h-16 bg-white border-b border-[#E7E4DC] flex justify-between items-center px-6 shrink-0 shadow-sm">
+    <div className="h-screen bg-[#f9fafa] text-[#20303c] flex flex-col font-sans overflow-hidden">
+      
+      {/* TOPBAR - Simplificado */}
+      <header className="h-14 bg-white border-b border-[#E3E7E9] px-6 flex justify-between items-center shrink-0 z-10">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-[#F0973D] flex items-center justify-center font-['IBM_Plex_Mono'] font-bold text-[#17233B] text-sm">&lt;/&gt;</div>
-          <h1 className="text-xl font-bold text-[#2E4A78] font-['Space_Grotesk']">BugBuster <span className="text-xs font-normal text-slate-400 ml-2 uppercase tracking-widest">Agent Terminal</span></h1>
+          <div className="w-8 h-8 rounded-lg bg-[#F2A65A] flex items-center justify-center font-mono font-bold text-[#1B2A41] text-sm">&lt;/&gt;</div>
+          <h1 className="text-lg font-extrabold text-[#1B2A41]">BugBuster</h1>
         </div>
-        <button onClick={logout} className="text-xs font-bold uppercase tracking-widest bg-[#E7E4DC] hover:bg-red-100 hover:text-red-600 px-4 py-2 rounded-lg transition-all text-[#8A8A94]">Cerrar Sesión</button>
+        <button 
+          onClick={logout} 
+          className="text-xs font-bold uppercase tracking-wider bg-[#EEF3F6] hover:bg-red-50 hover:text-red-600 px-4 py-2 rounded-lg transition-all text-[#5b6b76]"
+        >
+          Salir
+        </button>
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        <aside className="w-72 bg-[#2E4A78] text-white flex flex-col shadow-xl">
-          <div className="p-6 border-b border-white/10 bg-[#1E304F]">
-            <h3 className="text-xs font-bold text-[#F5CFA3] uppercase tracking-widest flex items-center gap-2">
-              <span className="w-2 h-2 bg-[#F0973D] rounded-full animate-pulse"></span> Mission Log
-            </h3>
-          </div>
-          <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
-            {levels.map(level => (
+        {/* SIDEBAR - Misiones Flat List */}
+        <aside className="w-64 bg-white border-r border-[#E3E7E9] p-4 flex flex-col">
+          <div className="text-[11px] font-bold text-[#5b6b76] uppercase tracking-widest px-3 mb-3">Misiones</div>
+          <div className="flex-1 overflow-y-auto space-y-1 custom-scrollbar">
+            {levels.map((level, idx) => (
               <div 
                 key={level.id} 
-                onClick={() => { setCurrentLevel(level); setCode(''); setResult(null); }}
-                className={`group cursor-pointer p-4 rounded-xl border transition-all duration-200 ${currentLevel?.id === level.id ? 'bg-[#F0973D] border-[#F0973D] text-[#17233B] shadow-lg scale-105' : 'bg-white/10 border-white/10 hover:bg-white/20 text-white/80'}`}
+                onClick={() => selectLevel(level)}
+                className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all duration-200 ${
+                  currentLevel?.id === level.id 
+                  ? 'bg-[#FFF3E7] text-[#1B2A41] border-l-4 border-[#F2A65A]' 
+                  : 'hover:bg-[#F3F6F7] text-[#5b6b76] border-l-4 border-transparent'
+                }`}
               >
-                <div className="flex items-center gap-3">
-                  <span className="text-xs font-['IBM_Plex_Mono'] opacity-60">0{level.id}</span>
-                  <span className="text-sm font-semibold">{level.title}</span>
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                  currentLevel?.id === level.id ? 'bg-[#F2A65A] text-white' : 'bg-[#E9EDEF] text-[#5b6b76]'
+                }`}>
+                  {idx + 1}
                 </div>
+                <span className="text-sm font-semibold">{level.title}</span>
               </div>
             ))}
           </div>
         </aside>
 
-        <main className="flex-1 flex flex-col p-8 gap-6 overflow-hidden">
-          {currentLevel ? (
-            <>
-              <div className="bg-white border border-[#E7E4DC] p-6 rounded-2xl shadow-sm relative overflow-hidden">
-                <div className="absolute left-0 top-0 w-2 h-full bg-[#F0973D]"></div>
-                <h2 className="text-2xl font-bold text-[#2E4A78] mb-2 font-['Space_Grotesk']">Misión: {currentLevel.title}</h2>
-                <p className="text-[#8A8A94] leading-relaxed max-w-3xl text-sm">{currentLevel.description}</p>
-              </div>
+        {/* MAIN CONTENT */}
+        <main className="flex-1 flex overflow-hidden">
+          
+          {/* PANEL IZQUIERDO - Briefing (Hoja de Misión) */}
+          <div className="w-[420px] p-7 border-r border-[#E3E7E9] overflow-y-auto bg-white">
+            {currentLevel ? (
+              <div className="animate-in fade-in slide-in-from-left-4 duration-500">
+                <p className="text-xs text-[#5b6b76] mb-1">Misión actual</p>
+                <h1 className="text-2xl font-extrabold text-[#1B2A41] mb-6">{currentLevel.title}</h1>
+                
+                <div className="border border-[#E3E7E9] rounded-2xl p-6 space-y-6">
+                  {/* 1. Concepto */}
+                  <div className="flex gap-4">
+                    <div className="w-6 h-6 rounded-full bg-[#1B2A41] text-white text-xs font-bold flex items-center justify-center shrink-0">1</div>
+                    <div>
+                      <div className="text-[11px] font-bold uppercase text-[#E38F3D] mb-1 tracking-wider">Concepto</div>
+                      <p className="text-sm text-[#5b6b76] leading-relaxed">
+                        {currentLevel.hint || "Aprende la sintaxis básica de Java para resolver este reto."}
+                      </p>
+                    </div>
+                  </div>
 
-              <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-0">
-                <div className="flex flex-col gap-4 min-h-0">
-                  <div className="flex-1 rounded-2xl overflow-hidden border border-[#E7E4DC] shadow-sm relative">
-                    <CodeEditor value={code} onChange={setCode} />
-                  </div>
-                  <div className="flex gap-3 shrink-0">
-                    <button onClick={submitCode} className="flex-1 bg-[#2E4A78] hover:bg-[#1E304F] text-white font-bold py-3 rounded-xl transition-all active:scale-95 shadow-md uppercase tracking-wider font-['Space_Grotesk']">Ejecutar Código</button>
-                    <button onClick={() => setCode(currentLevel.template.replace('//USER_CODE', ''))} className="px-6 bg-white hover:bg-gray-50 text-[#8A8A94] rounded-xl border border-[#E7E4DC] transition-all font-semibold">Reset</button>
-                  </div>
-                  {result && (
-                    <div className={`p-4 rounded-xl border animate-in zoom-in-95 duration-300 ${result.success ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-red-50 border-red-200 text-red-700'}`}>
-                      <div className="flex items-center gap-2 mb-1 font-bold uppercase text-xs">{result.success ? '✅ Éxito' : '❌ Error de Sistema'}</div>
-                      <p className="text-sm">{result.message}</p>
-                      {result.output && <pre className="mt-2 text-xs font-['IBM_Plex_Mono'] bg-white/50 p-2 rounded border border-black/5">{result.output}</pre>}
+                  <div className="h-px bg-[#E3E7E9] ml-6"></div>
+
+                  {/* 2. Tarea */}
+                  <div className="flex gap-4">
+                    <div className="w-6 h-6 rounded-full bg-[#1B2A41] text-white text-xs font-bold flex items-center justify-center shrink-0">2</div>
+                    <div>
+                      <div className="text-[11px] font-bold uppercase text-[#E38F3D] mb-1 tracking-wider">Tu tarea</div>
+                      <p className="text-sm text-[#5b6b76] leading-relaxed">
+                        {currentLevel.description}
+                      </p>
                     </div>
-                  )}
-                </div>
-                <div className="flex flex-col gap-6 min-h-0">
-                  <div className="flex-1 bg-white rounded-2xl border border-[#E7E4DC] shadow-sm relative overflow-hidden">
-                    <div className="absolute top-4 left-4 z-10 flex gap-2">
-                      <div className="w-2 h-2 rounded-full bg-[#F0973D] animate-pulse"></div>
-                      <div className="w-2 h-2 rounded-full bg-[#2E4A78] animate-pulse delay-75"></div>
-                      <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse delay-150"></div>
-                    </div>
-                    <GameCanvas levelId={currentLevel.id} result={result} />
                   </div>
-                  <div className="h-1/3 bg-white rounded-2xl border border-[#E7E4DC] shadow-sm overflow-hidden">
-                    <AgentChat levelId={currentLevel.id} />
+
+                  <div className="h-px bg-[#E3E7E9] ml-6"></div>
+
+                  {/* 3. Ejemplo */}
+                  <div className="flex gap-4">
+                    <div className="w-6 h-6 rounded-full bg-[#1B2A41] text-white text-xs font-bold flex items-center justify-center shrink-0">3</div>
+                    <div>
+                      <div className="text-[11px] font-bold uppercase text-[#E38F3D] mb-1 tracking-wider">Ejemplo</div>
+                      <div className="bg-[#20303c] text-[#7FE0A8] font-mono text-xs p-3 rounded-lg mt-2">
+                        {`// Ejemplo sugerido\nSystem.out.println("Resultado");`}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </>
-          ) : (
-            <div className="flex-1 flex items-center justify-center text-[#8A8A94] animate-pulse font-['IBM_Plex_Mono']">Cargando terminal...</div>
-          )}
+            ) : (
+              <div className="h-full flex items-center justify-center text-[#5b6b76] italic text-sm">Selecciona una misión...</div>
+            )}
+          </div>
+
+          {/* PANEL DERECHO - Editor y Consola */}
+          <div className="flex-1 flex flex-col bg-[#282a36]">
+            {/* Editor Toolbar */}
+            <div className="h-12 bg-[#1e1f29] flex justify-between items-center px-4 border-b border-[#191a21]">
+              <div className="bg-[#44475a] text-[#f8f8f2] text-xs font-bold px-3 py-1 rounded-md">
+                {currentLevel?.title.replace(/\s+/g, '_')}.java
+              </div>
+              <button 
+                onClick={handleRunCode} 
+                className="bg-[#50fa7b] hover:bg-[#42d668] text-[#282a36] text-xs font-extrabold px-4 py-1.5 rounded-md transition-all transform active:scale-95"
+              >
+                ▶ EJECUTAR
+              </button>
+            </div>
+
+            {/* Editor Area */}
+            <div className="flex-1 relative">
+              <CodeEditor value={code} onChange={setCode} />
+              {result?.success && (
+                <div className="absolute top-4 right-4 w-32 h-24 pointer-events-none animate-in zoom-in duration-300">
+                   <GameCanvas levelId={currentLevel?.id || 0} result={result} />
+                </div>
+              )}
+            </div>
+
+            {/* Console Area */}
+            <div className="h-48 bg-[#1e1f29] border-t border-[#191a21] p-4 flex flex-col">
+              <div className="text-[10px] font-bold text-[#6272a4] uppercase tracking-widest mb-2">Salida del Sistema</div>
+              <div className={`flex-1 font-mono text-sm overflow-y-auto custom-scrollbar ${
+                result?.success ? 'text-[#50fa7b]' : result ? 'text-[#ff5555]' : 'text-[#6272a4]'
+              }`}>
+                {result ? (
+                  <pre className="whitespace-pre-wrap">{result.output || result.message}</pre>
+                ) : (
+                  <span className="italic opacity-50">Presiona Ejecutar para ver el resultado...</span>
+                )}
+              </div>
+            </div>
+          </div>
+
         </main>
       </div>
     </div>
