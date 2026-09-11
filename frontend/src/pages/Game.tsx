@@ -93,8 +93,17 @@ export default function Game() {
 
           <div className="flex-1 flex flex-col bg-[#282a36]">
             <div className="h-12 bg-[#1e1f29] flex justify-between items-center px-4 border-b border-[#191a21]">
-              <div className="bg-[#44475a] text-[#f8f8f2] text-xs font-bold px-3 py-1 rounded-md">Main.java</div>
-              <button onClick={submitCode} className="bg-[#50fa7b] hover:bg-[#42d668] text-[#282a36] text-xs font-extrabold px-4 py-1.5 rounded-md transition-all transform active:scale-95 shadow-lg">▶ EJECUTAR</button>
+              <div className="bg-[#44475a] text-[#f8f8f2] text-xs font-bold px-3 py-1 rounded-md">
+                {currentLevel ? `${currentLevel.title.replace(/\s+/g, '')}.java` : 'Main.java'}
+              </div>
+              
+              {/* BOTÓN CORREGIDO: Transparente -> Verde con animación */}
+              <button 
+                onClick={submitCode} 
+                className="bg-transparent border border-[#50fa7b] text-[#50fa7b] hover:bg-[#50fa7b] hover:text-[#282a36] text-xs font-extrabold px-4 py-1.5 rounded-md transition-all duration-300 ease-in-out transform active:scale-95 shadow-sm hover:shadow-[0_0_15px_rgba(80,250,123,0.4)]"
+              >
+                EJECUTAR
+              </button>
             </div>
             <div className="flex-1 relative">
               <CodeEditor value={code} onChange={setCode} />
