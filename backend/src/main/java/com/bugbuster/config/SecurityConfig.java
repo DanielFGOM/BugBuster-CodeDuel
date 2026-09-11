@@ -11,6 +11,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -34,10 +35,12 @@ public class SecurityConfig {
             .headers(headers -> headers.frameOptions(frame -> frame.disable()))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                // HEMOS ELIMINADO LA LÍNEA DE H2Console QUE CAUSABA EL ERROR 500
-                .requestMatchers(new org.springframework.web.cors.AntPathRequestMatcher("/**", "OPTIONS")).permitAll()
-                .requestMatchers(new org.springframework.security.web.util.matcher.AntPathRequestMatcher("/api/auth/register")).permitAll()
-                .requestMatchers(new org.springframework.security.web.util.matcher.AntPathRequestMatcher("/api/auth/login")).permitAll()
+                // Permitir solicitudes OPTIONS para CORS
+                .requestMatchers(new AntPathRequestMatcher("/**", "OPTIONS")).permitAll()
+                // Endpoints públicos de autenticación
+                .requestMatchers(new AntPathRequestMatcher("/api/auth/register")).permitAll()
+                .requestMatchers(new AntPathRequestMatcher("/api/auth/login")).permitAll()
+                // Todo lo demás requiere token
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
