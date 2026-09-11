@@ -11,12 +11,10 @@ export function useAuthLogic() {
   const { login } = useAuth();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.//target.value }); // Error corregido: e.target.value
-  };
-
-  // Corregido el typo del handleInputChange
-  const updateField = (name: string, value: string) => {
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData({ 
+      ...formData, 
+      [e.target.name]: e.target.value 
+    });
   };
 
   const executeLogin = async (e: React.FormEvent) => {
@@ -42,5 +40,5 @@ export function useAuthLogic() {
     }
   };
 
-  return { view, setView, formData, updateField, executeLogin, executeRegister };
+  return { view, setView, formData, handleInputChange, executeLogin, executeRegister };
 }
