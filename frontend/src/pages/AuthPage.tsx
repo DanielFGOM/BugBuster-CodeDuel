@@ -3,8 +3,8 @@ import { useAuthLogic } from '../hooks/useAuthLogic';
 
 export default function AuthPage() {
   const { view, setView, formData, handleInputChange, executeLogin, executeRegister } = useAuthLogic();
-  const [currentStep, setCurrentStep] = useState(0);
-
+  
+  // --- LÓGICA DE ANIMACIÓN RESTAURADA ---
   const steps = [
     { label: "Variables", code: "int nivel = 1;" },
     { label: "Condicionales", code: "if (nivel < 5) { subir(); }" },
@@ -12,12 +12,33 @@ export default function AuthPage() {
     { label: "Clases", code: "class Heroe { String nombre; }" },
   ];
 
+  const [currentStep, setCurrentStep] = useState(0);
+  const [displayText, setDisplayText] = useState('');
+  const [isErasing, setIsErasing] = useState(false);
+
   useEffect(() => {
+    const currentCode = steps[currentStep].code;
+    let i = 0;
+    
     const timer = setInterval(() => {
-      setCurrentStep((prev) => (prev + 1) % steps.length);
-    }, 3000);
+      if (!isErasing) {
+        setDisplayText(currentCode.slice(0, i + 1));
+        i++;
+        if (i === currentCode.length) {
+          setTimeout(() => setIsErasing(true), 1500);
+        }
+      } else {
+        setDisplayText(prev => prev.slice(0, -1));
+        if (displayText.length === 0) {
+          setIsErasing(false);
+          setCurrentStep((prev) => (prev + 1) % steps.length);
+          i = 0;
+        }
+      }
+    }, isErasing ? 30 : 60);
+
     return () => clearInterval(timer);
-  }, []);
+  }, [currentStep, isErasing, displayText]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#f5f7f8] p-6 font-sans">
@@ -45,7 +66,7 @@ export default function AuthPage() {
             ))}
           </div>
           <div className="bg-black/30 rounded-lg p-4 font-mono text-sm text-[#F2A65A] min-h-[50px]">
-            {steps[currentStep].code}
+            {displayText}
             <span className="inline-block w-1 h-4 bg-[#F2A65A] ml-1 animate-pulse align-middle"></span>
           </div>
         </div>
