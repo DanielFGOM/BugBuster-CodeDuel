@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'; // Eliminamos la palabra 'React' aquí
+import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import api from '../api/axios';
 import CodeEditor from '../components/CodeEditor';
@@ -15,75 +15,92 @@ interface Level {
 }
 
 export default function Game() {
+  // --- ESTADOS ---
   const [levels, setLevels] = useState<Level[]>([]);
   const [currentLevel, setCurrentLevel] = useState<Level | null>(null);
   const [code, setCode] = useState('');
   const [result, setResult] = useState<{ success: boolean; message: string; output?: string } | null>(null);
   const { logout } = useAuth();
 
+  // --- CARGA INICIAL DE NIVELES ---
   useEffect(() => {
+    const loadLevels = async () => {
+      try {
+        const res = await api.get('/game/levels');
+        const data = res.data;
+        setLevels(data);
+        if (data.length > 0) {
+          const firstLevel = data[0];
+          setCurrentLevel(firstLevel);
+          // Cargamos la estructura completa (public class Main...)
+          setCode(firstLevel.template); 
+        }
+      } catch (error) {
+        toast.error("Error conectando con el servidor de misiones");
+      }
+    };
     loadLevels();
   }, []);
 
-  const loadLevels = async () => {
-    try {
-      const res = await api.get('/game/levels');
-      setLevels(res.data);
-      if (res.data.length > 0) {
-        const firstLevel = res.data[0];
-        setCurrentLevel(firstLevel);
-        setCode(firstLevel.template.replace('//USER_CODE', ''));
-      }
-    } catch (error) {
-      toast.error("Error al cargar las misiones");
-    }
+  // --- LÓGICA DE EJEMPLOS DINÁMICOS ---
+  const getExampleForLevel = (id: number) => {
+    const examples: Record<number, string> = {
+      1: 'System.out.println("Hola Mundo");',
+      2: 'String mensaje = "Java es genial";\nSystem.out.println(mensaje);',
+      3: 'int suma = 15 + 7;\nSystem.out.println(suma);',
+      4: 'if (numero > 5) {\n  System.out.println("Mayor");\n}',
+      5: 'if (numero % 2 == 0) {\n  System.out.println("Par");\n}',
+      6: 'for (int i = 1; i <= 5; i++) {\n  System.out.println(i);\n}',
+      7: 'while (contador <= 3) {\n  System.out.println(contador);\n  contador++;\n}',
+      8: 'saludar();',
+    };
+    return examples[id] || '// Escribe tu código aquí';
   };
 
-  const handleRunCode = async () => {
+  // --- ENVÍO DE CÓDIGO AL COMPILADOR ---
+  const submitCode = async () => {
     if (!currentLevel) return;
     setResult(null); 
     try {
+      // Enviamos el código completo del editor al backend
       const res = await api.post('/game/submit', { levelId: currentLevel.id, code });
       setResult(res.data);
       if (res.data.success) {
-        toast.success('¡Misión Completada!');
+        toast.success('¡Misión superada! El bug ha sido eliminado.');
       } else {
-        toast.error('El código tiene errores o la salida no es la esperada.');
+        toast.error('La salida no coincide con lo esperado.');
       }
     } catch (error: any) {
-      toast.error(error.response?.data || "Error en el servidor de compilación");
+      toast.error(error.response?.data || "Error crítico en el compilador");
     }
   };
 
+  // --- CAMBIO DE MISIÓN ---
   const selectLevel = (level: Level) => {
     setCurrentLevel(level);
-    setCode(level.template.replace('//USER_CODE', ''));
+    setCode(level.template); // Cargamos la estructura completa del nivel seleccionado
     setResult(null);
   };
 
   return (
     <div className="h-screen bg-[#f9fafa] text-[#20303c] flex flex-col font-sans overflow-hidden">
+      
+      {/* TOPBAR - Diseño Profesional Limpio */}
       <header className="h-14 bg-white border-b border-[#E3E7E9] px-6 flex justify-between items-center shrink-0 z-10">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-[#F2A65A] flex items-center justify-center font-mono font-bold text-[#1B2A41] text-sm">&lt;/&gt;</div>
-          <h1 className="text-lg font-extrabold text-[#1B2A41]">BugBuster</h1>
+          <h1 className="text-lg font-extrabold text-[#1B2A41] font-['Space_Grotesk']">BugBuster</h1>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 text-xs font-semibold text-[#5b6b76]">
-            <span className="flex items-center gap-1">
-              <div className="w-2 h-2 rounded-full bg-green-500"></div> Online
-            </span>
-          </div>
-          <button 
-            onClick={logout} 
-            className="text-xs font-bold uppercase tracking-wider bg-[#EEF3F6] hover:bg-red-50 hover:text-red-600 px-4 py-2 rounded-lg transition-all text-[#5b6b76]"
-          >
-            Salir
-          </button>
-        </div>
+        <button 
+          onClick={logout} 
+          className="text-xs font-bold uppercase tracking-wider bg-[#EEF3F6] hover:bg-red-100 hover:text-red-600 px-4 py-2 rounded-lg transition-all text-[#5b6b76]"
+        >
+          Salir
+        </button>
       </header>
 
       <div className="flex flex-1 overflow-hidden">
+        {/* SIDEBAR - Lista de Misiones */}
         <aside className="w-64 bg-white border-r border-[#E3E7E9] p-4 flex flex-col">
           <div className="text-[11px] font-bold text-[#5b6b76] uppercase tracking-widest px-3 mb-3">Misiones</div>
           <div className="flex-1 overflow-y-auto space-y-1 custom-scrollbar">
@@ -108,40 +125,50 @@ export default function Game() {
           </div>
         </aside>
 
+        {/* MAIN AREA */}
         <main className="flex-1 flex overflow-hidden">
+          
+          {/* PANEL IZQUIERDO - Hoja de Misión Profesional */}
           <div className="w-[420px] p-7 border-r border-[#E3E7E9] overflow-y-auto bg-white">
             {currentLevel ? (
               <div className="animate-in fade-in slide-in-from-left-4 duration-500">
                 <p className="text-xs text-[#5b6b76] mb-1">Misión actual</p>
                 <h1 className="text-2xl font-extrabold text-[#1B2A41] mb-6">{currentLevel.title}</h1>
                 
-                <div className="border border-[#E3E7E9] rounded-2xl p-6 space-y-6">
-                  <div className="flex gap-4">
-                    <div className="w-6 h-6 rounded-full bg-[#1B2A41] text-white text-xs font-bold flex items-center justify-center shrink-0">1</div>
-                    <div>
+                <div className="border border-[#E3E7E9] rounded-2xl p-6 space-y-6 bg-gray-50/50 shadow-sm">
+                  {/* 1. Concepto */}
+                  <div className="flex gap-4 items-start">
+                    <div className="w-6 h-6 rounded-full bg-[#1B2A41] text-white text-xs font-bold flex items-center justify-center shrink-0 mt-1">1</div>
+                    <div className="flex-1">
                       <div className="text-[11px] font-bold uppercase text-[#E38F3D] mb-1 tracking-wider">Concepto</div>
-                      <p className="text-sm text-[#5b6b76] leading-relaxed">
+                      <p className="text-sm text-[#5b6b76] leading-relaxed text-justify">
                         {currentLevel.hint || "Aprende la sintaxis básica de Java para resolver este reto."}
                       </p>
                     </div>
                   </div>
+
                   <div className="h-px bg-[#E3E7E9] ml-6"></div>
-                  <div className="flex gap-4">
-                    <div className="w-6 h-6 rounded-full bg-[#1B2A41] text-white text-xs font-bold flex items-center justify-center shrink-0">2</div>
-                    <div>
+
+                  {/* 2. Tarea */}
+                  <div className="flex gap-4 items-start">
+                    <div className="w-6 h-6 rounded-full bg-[#1B2A41] text-white text-xs font-bold flex items-center justify-center shrink-0 mt-1">2</div>
+                    <div className="flex-1">
                       <div className="text-[11px] font-bold uppercase text-[#E38F3D] mb-1 tracking-wider">Tu tarea</div>
-                      <p className="text-sm text-[#5b6b76] leading-relaxed">
+                      <p className="text-sm text-[#1B2A41] font-medium leading-relaxed">
                         {currentLevel.description}
                       </p>
                     </div>
                   </div>
+
                   <div className="h-px bg-[#E3E7E9] ml-6"></div>
-                  <div className="flex gap-4">
-                    <div className="w-6 h-6 rounded-full bg-[#1B2A41] text-white text-xs font-bold flex items-center justify-center shrink-0">3</div>
-                    <div>
+
+                  {/* 3. Ejemplo */}
+                  <div className="flex gap-4 items-start">
+                    <div className="w-6 h-6 rounded-full bg-[#1B2A41] text-white text-xs font-bold flex items-center justify-center shrink-0 mt-1">3</div>
+                    <div className="flex-1">
                       <div className="text-[11px] font-bold uppercase text-[#E38F3D] mb-1 tracking-wider">Ejemplo</div>
-                      <div className="bg-[#20303c] text-[#7FE0A8] font-mono text-xs p-3 rounded-lg mt-2">
-                        {`// Ejemplo sugerido\nSystem.out.println("Resultado");`}
+                      <div className="bg-[#20303c] text-[#7FE0A8] font-mono text-xs p-4 rounded-xl mt-2 shadow-inner whitespace-pre-wrap leading-relaxed">
+                        {getExampleForLevel(currentLevel.id)}
                       </div>
                     </div>
                   </div>
@@ -152,18 +179,20 @@ export default function Game() {
             )}
           </div>
 
+          {/* PANEL DERECHO - Editor y Consola */}
           <div className="flex-1 flex flex-col bg-[#282a36]">
             <div className="h-12 bg-[#1e1f29] flex justify-between items-center px-4 border-b border-[#191a21]">
               <div className="bg-[#44475a] text-[#f8f8f2] text-xs font-bold px-3 py-1 rounded-md">
-                {currentLevel?.title.replace(/\s+/g, '_')}.java
+                Main.java
               </div>
               <button 
-                onClick={handleRunCode} 
-                className="bg-[#50fa7b] hover:bg-[#42d668] text-[#282a36] text-xs font-extrabold px-4 py-1.5 rounded-md transition-all transform active:scale-95"
+                onClick={submitCode} 
+                className="bg-[#50fa7b] hover:bg-[#42d668] text-[#282a36] text-xs font-extrabold px-4 py-1.5 rounded-md transition-all transform active:scale-95 shadow-lg"
               >
                 ▶ EJECUTAR
               </button>
             </div>
+
             <div className="flex-1 relative">
               <CodeEditor value={code} onChange={setCode} />
               {result?.success && (
@@ -172,6 +201,7 @@ export default function Game() {
                 </div>
               )}
             </div>
+
             <div className="h-48 bg-[#1e1f29] border-t border-[#191a21] p-4 flex flex-col">
               <div className="text-[10px] font-bold text-[#6272a4] uppercase tracking-widest mb-2">Salida del Sistema</div>
               <div className={`flex-1 font-mono text-sm overflow-y-auto custom-scrollbar ${
@@ -180,11 +210,12 @@ export default function Game() {
                 {result ? (
                   <pre className="whitespace-pre-wrap">{result.output || result.message}</pre>
                 ) : (
-                  <span className="italic opacity-50">Presiona Ejecutar para ver el resultado...</span>
+                  <span className="italic opacity-50">Escribe tu código y presiona Ejecutar para ver el resultado...</span>
                 )}
               </div>
             </div>
           </div>
+
         </main>
       </div>
     </div>

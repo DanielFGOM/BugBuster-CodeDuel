@@ -3,7 +3,6 @@ package com.bugbuster.service;
 import org.springframework.stereotype.Service;
 import javax.tools.*;
 import java.io.*;
-import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
@@ -11,18 +10,20 @@ import java.util.List;
 @Service
 public class CompilerService {
 
-    public CompilationResult compileAndRun(String fullCode, String expectedOutput) {
-        // Creamos un archivo temporal con el código
+    public CompilationResult compileAndRun(String userCode, String expectedOutput) {
         try {
-            // Guardar el código en un archivo temporal
+            // 1. Creamos la carpeta temporal
             File tempDir = new File(System.getProperty("java.io.tmpdir"), "bugbuster");
             tempDir.mkdirs();
-            File sourceFile = new File(tempDir, "DynamicSolution.java");
+            
+            // 2. GUARDAMOS EL CÓDIGO EXACTAMENTE COMO VIENE DEL EDITOR
+            // Lo llamamos Main.java para que coincida con lo que el usuario escribe
+            File sourceFile = new File(tempDir, "Main.java");
             try (FileWriter fw = new FileWriter(sourceFile)) {
-                fw.write(fullCode);
+                fw.write(userCode);
             }
 
-            // Compilar
+            // 3. Compilar
             JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
             DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
             StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, null);
@@ -32,13 +33,13 @@ public class CompilerService {
             PrintWriter compileWriter = new PrintWriter(compileOut);
             boolean success = compiler.getTask(compileWriter, fileManager, diagnostics, null, null, fileObjects).call();
             compileWriter.flush();
+            
             if (!success) {
-                return new CompilationResult(false, "Error de compilación: " + compileOut.toString(), null);
+                return new CompilationResult(false, "Error de compilación:\n" + compileOut.toString(), null);
             }
 
-            // Ejecutar la clase (asumimos método main o un método estático que devuelva String)
-            // Simulación: ejecutamos con ProcessBuilder
-            ProcessBuilder pb = new ProcessBuilder("java", "-cp", tempDir.getAbsolutePath(), "DynamicSolution");
+            // 4. Ejecutar la clase "Main"
+            ProcessBuilder pb = new ProcessBuilder("java", "-cp", tempDir.getAbsolutePath(), "Main");
             pb.redirectErrorStream(true);
             Process process = pb.start();
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
@@ -47,15 +48,15 @@ public class CompilerService {
             while ((line = reader.readLine()) != null) {
                 output.append(line).append("\n");
             }
-            int exitCode = process.waitFor();
+            process.waitFor();
 
             String actualOutput = output.toString().trim();
             boolean passed = expectedOutput != null && actualOutput.equals(expectedOutput.trim());
 
-            return new CompilationResult(true, passed ? "Correcto" : "Salida incorrecta", actualOutput);
+            return new CompilationResult(true, passed ? "¡Correcto!" : "Salida incorrecta", actualOutput);
 
         } catch (Exception e) {
-            return new CompilationResult(false, "Error: " + e.getMessage(), null);
+            return new CompilationResult(false, "Error del sistema: " + e.getMessage(), null);
         }
     }
 
