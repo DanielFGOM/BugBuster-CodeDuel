@@ -1,31 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import api from '../api/axios';
 import { useAuth } from '../hooks/useAuth';
 
-function Notification({ message, type }: { message: string, type: 'success' | 'error' }) {
-  return (
-    <div className={`fixed top-5 right-5 z-[100] px-6 py-3 rounded-lg shadow-2xl text-white text-sm font-medium animate-in fade-in slide-in-from-right-5 duration-300 ${type === 'success' ? 'bg-emerald-600' : 'bg-red-600'}`}>
-      {message}
-    </div>
-  );
-}
-
 export default function AuthPage() {
   const [view, setView] = useState<'login' | 'register'>('login');
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [notification, setNotification] = useState<{msg: string, type: 'success' | 'error'} | null>(null);
+  const [formData, setFormData] = useState({
+    username: '',
+    email: '',
+    password: '',
+  });
 
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const showNotify = (msg: string, type: 'success' | 'error') => {
-    setNotification({ msg, type });
-    setTimeout(() => setNotification(null), 3000);
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // Lógica de la Terminal Animada
   const [text, setText] = useState('');
   const [step, setStep] = useState(0);
   const snippets = ['int nivel = 1;', 'if (nivel < 5) { subir(); }', 'for (int i = 0; i < 3; i++) {}', 'public class Jugador { }'];
@@ -47,32 +41,39 @@ export default function AuthPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      // IMPORTANTE: Enviamos username y password
-      const res = await api.post('/auth/login', { username, password });
+      const res = await api.post('/auth/login', { 
+        username: formData.username, 
+        password: formData.password 
+      });
       login(res.data); 
-      showNotify('¡Bienvenido de nuevo, Agente!', 'success');
+      toast.success('¡Bienvenido, Agente!');
       setTimeout(() => navigate('/game'), 1000);
     } catch (error: any) {
-      showNotify(error.response?.data || 'Error de servidor (500). Revisa las variables de Render', 'error');
+      const msg = error.response?.data || 'Error crítico en el servidor (500)';
+      toast.error(msg);
     }
   };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api.post('/auth/register', { username, email, password });
-      showNotify('Cuenta creada con éxito.', 'success');
+      await api.post('/auth/register', { 
+        username: formData.username, 
+        email: formData.email, 
+        password: formData.password 
+      });
+      toast.success('Cuenta creada. Inicia sesión ahora.');
       setView('login');
     } catch (error: any) {
-      showNotify(error.response?.data || 'Error al registrar la cuenta', 'error');
+      const msg = error.response?.data || 'Error al registrar la cuenta';
+      toast.error(msg);
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#F3F1EC] p-6 font-['Inter']">
-      {notification && <Notification message={notification.msg} type={notification.type} />}
-
       <div className="relative w-full max-w-[1000px] min-h-[560px] rounded-[18px] overflow-hidden bg-white border border-[#E7E4DC] shadow-sm">
+        
         {/* PANEL IZQUIERDO */}
         <div 
           className="absolute inset-y-0 left-0 w-[56%] bg-gradient-to-br from-[#2E4A78] via-[#1E304F] to-[#121D33] text-white flex flex-col justify-between px-10 py-10 pr-16 overflow-hidden"
@@ -123,38 +124,33 @@ export default function AuthPage() {
                 <div className="mb-5">
                   <label className="block text-xs text-[#8A8A94] mb-1.5">Nombre de Usuario</label>
                   <input 
+                    name="username"
                     type="text" 
-                    placeholder="Tu usuario de BugBuster"
-                    className="w-full py-2.5 border-0 border-b border-[#E7E4DC] bg-transparent text-sm text-[#1E2233] placeholder-[#BAB8B0] focus:border-[#243A5E] outline-none transition-colors"
-                    value={username}
-                    onChange={e => setUsername(e.target.value)}
+                    placeholder="Escribe tu usuario"
+                    className="w-full py-2.5 border-0 border-b border-[#E7E4DC] bg-transparent text-sm text-[#1E2233] placeholder-[#BAB8B0] focus:border-[#2E4A78] outline-none transition-colors"
+                    value={formData.username}
+                    onChange={handleInputChange}
                     required
                   />
                 </div>
                 <div className="mb-5">
                   <label className="block text-xs text-[#8A8A94] mb-1.5">Contraseña</label>
                   <input 
+                    name="password"
                     type="password" 
-                    placeholder="Escribe tu contraseña aquí"
-                    className="w-full py-2.5 border-0 border-b border-[#E7E4DC] bg-transparent text-sm text-[#1E2233] placeholder-[#BAB8B0] focus:border-[#243A5E] outline-none transition-colors"
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
+                    placeholder="Escribe tu contraseña"
+                    className="w-full py-2.5 border-0 border-b border-[#E7E4DC] bg-transparent text-sm text-[#1E2233] placeholder-[#BAB8B0] focus:border-[#2E4A78] outline-none transition-colors"
+                    value={formData.password}
+                    onChange={handleInputChange}
                     required
                   />
                 </div>
-                <div className="flex items-center justify-between text-xs text-[#8A8A94] my-2 mb-6">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" className="w-auto" /> Recordarme
-                  </label>
-                  <a href="#" className="text-[#243A5E]">Olvidé mi contraseña</a>
-                </div>
-                <button className="w-full py-3 rounded-lg bg-[#243A5E] hover:bg-[#17233B] border border-[#243A5E] text-white text-sm font-semibold transition-colors">
+                <button className="w-full py-3 rounded-lg bg-[#2E4A78] hover:bg-[#1E304F] text-white text-sm font-semibold transition-colors shadow-md">
                   Entrar a BugBuster
                 </button>
               </form>
               <p className="text-center text-[12.5px] text-[#8A8A94] mt-5">
-                ¿No tienes una cuenta? 
-                <button onClick={() => setView('register')} className="text-[#E2833D] font-semibold ml-1 hover:underline">Crea una</button>
+                ¿No tienes cuenta? <button onClick={() => setView('register')} className="text-[#E2833D] font-semibold ml-1 hover:underline">Crea una</button>
               </p>
             </div>
           ) : (
@@ -162,45 +158,47 @@ export default function AuthPage() {
               <h2 className="font-['Space_Grotesk'] font-semibold text-[21px] text-[#1E2233] mb-7">Crea tu cuenta</h2>
               <form onSubmit={handleRegister} className="space-y-5">
                 <div className="mb-5">
-                  <label className="block text-xs text-[#8A8A94] mb-1.5">Nombre de usuario</label>
+                  <label className="block text-xs text-[#8A8A94] mb-1.5">Nombre de Usuario</label>
                   <input 
+                    name="username"
                     type="text" 
-                    placeholder="Escribe tu nombre de usuario aquí"
-                    className="w-full py-2.5 border-0 border-b border-[#E7E4DC] bg-transparent text-sm text-[#1E2233] placeholder-[#BAB8B0] focus:border-[#243A5E] outline-none transition-colors"
-                    value={username}
-                    onChange={e => setUsername(e.target.value)}
+                    placeholder="Elige un nombre"
+                    className="w-full py-2.5 border-0 border-b border-[#E7E4DC] bg-transparent text-sm text-[#1E2233] placeholder-[#BAB8B0] focus:border-[#2E4A78] outline-none transition-colors"
+                    value={formData.username}
+                    onChange={handleInputChange}
                     required
                   />
                 </div>
                 <div className="mb-5">
-                  <label className="block text-xs text-[#8A8A94] mb-1.5">Correo</label>
+                  <label className="block text-xs text-[#8A8A94] mb-1.5">Correo Electrónico</label>
                   <input 
+                    name="email"
                     type="email" 
-                    placeholder="Escribe tu correo aquí"
-                    className="w-full py-2.5 border-0 border-b border-[#E7E4DC] bg-transparent text-sm text-[#1E2233] placeholder-[#BAB8B0] focus:border-[#243A5E] outline-none transition-colors"
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
+                    placeholder="correo@ejemplo.com"
+                    className="w-full py-2.5 border-0 border-b border-[#E7E4DC] bg-transparent text-sm text-[#1E2233] placeholder-[#BAB8B0] focus:border-[#2E4A78] outline-none transition-colors"
+                    value={formData.email}
+                    onChange={handleInputChange}
                     required
                   />
                 </div>
                 <div className="mb-6">
                   <label className="block text-xs text-[#8A8A94] mb-1.5">Contraseña</label>
                   <input 
+                    name="password"
                     type="password" 
                     placeholder="Mínimo 8 caracteres"
-                    className="w-full py-2.5 border-0 border-b border-[#E7E4DC] bg-transparent text-sm text-[#1E2233] placeholder-[#BAB8B0] focus:border-[#243A5E] outline-none transition-colors"
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
+                    className="w-full py-2.5 border-0 border-b border-[#E7E4DC] bg-transparent text-sm text-[#1E2233] placeholder-[#BAB8B0] focus:border-[#2E4A78] outline-none transition-colors"
+                    value={formData.password}
+                    onChange={handleInputChange}
                     required
                   />
                 </div>
-                <button className="w-full py-3 rounded-lg bg-[#243A5E] hover:bg-[#17233B] border border-[#243A5E] text-white text-sm font-semibold transition-colors">
+                <button className="w-full py-3 rounded-lg bg-[#2E4A78] hover:bg-[#1E304F] text-white text-sm font-semibold transition-colors shadow-md">
                   Crear cuenta
                 </button>
               </form>
               <p className="text-center text-[12.5px] text-[#8A8A94] mt-5">
-                ¿Ya tienes cuenta? 
-                <button onClick={() => setView('login')} className="text-[#E2833D] font-semibold ml-1 hover:underline">Inicia sesión</button>
+                ¿Ya tienes cuenta? <button onClick={() => setView('login')} className="text-[#E2833D] font-semibold ml-1 hover:underline">Inicia sesión</button>
               </p>
             </div>
           )}
