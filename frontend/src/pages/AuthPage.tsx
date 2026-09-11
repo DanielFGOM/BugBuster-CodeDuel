@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuthLogic } from '../hooks/useAuthLogic';
 
 export default function AuthPage() {
-  const { view, setView, formData, updateField, executeLogin, executeRegister } = useAuthLogic();
+  const { view, setView, formData, handleInputChange, executeLogin, executeRegister } = useAuthLogic();
   const [currentStep, setCurrentStep] = useState(0);
 
   const steps = [
@@ -33,8 +33,12 @@ export default function AuthPage() {
             {steps.map((step, idx) => (
               <div key={idx} className="flex items-center gap-0">
                 <div className="flex flex-col items-center w-[70px]">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${idx < currentStep ? 'bg-[#3CB878] text-white' : idx === currentStep ? 'bg-[#F2A65A] text-[#1B2A41]' : 'bg-white/10 text-white/50'}`}>{idx + 1}</div>
-                  <span className={`mt-2 text-[10px] font-semibold transition-colors ${idx === currentStep ? 'text-white' : 'text-white/60'}`}>{step.label}</span>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${idx < currentStep ? 'bg-[#3CB878] text-white' : idx === currentStep ? 'bg-[#F2A65A] text-[#1B2A41]' : 'bg-white/10 text-white/50'}`}>
+                    {idx + 1}
+                  </div>
+                  <span className={`mt-2 text-[10px] font-semibold transition-colors ${idx === currentStep ? 'text-white' : 'text-white/60'}`}>
+                    {step.label}
+                  </span>
                 </div>
                 {idx < steps.length - 1 && <div className="w-6 flex items-center justify-center text-white/30 font-bold">-</div>}
               </div>
@@ -52,11 +56,11 @@ export default function AuthPage() {
               <h2 className="text-2xl font-extrabold mb-6 text-[#1B2A41]">Inicia sesión</h2>
               <div>
                 <label className="block text-xs text-gray-500 mb-1">Usuario</label>
-                <input name="username" onChange={(e) => updateField('username', e.target.value)} className="w-full bg-[#EEF3F6] rounded-lg p-3 text-sm outline-none focus:border-[#F2A65A] border border-transparent" required />
+                <input name="username" value={formData.username} onChange={handleInputChange} className="w-full bg-[#EEF3F6] rounded-lg p-3 text-sm outline-none focus:border-[#F2A65A] border border-transparent" required />
               </div>
               <div>
                 <label className="block text-xs text-gray-500 mb-1">Contraseña</label>
-                <input name="password" type="password" onChange={(e) => updateField('password', e.target.value)} className="w-full bg-[#EEF3F6] rounded-lg p-3 text-sm outline-none focus:border-[#F2A65A] border border-transparent" required />
+                <input name="password" type="password" value={formData.password} onChange={handleInputChange} className="w-full bg-[#EEF3F6] rounded-lg p-3 text-sm outline-none focus:border-[#F2A65A] border border-transparent" required />
               </div>
               <button className="w-full bg-[#1B2A41] text-white p-3 rounded-lg font-bold hover:bg-[#24384f] transition-all">Entrar a BugBuster</button>
               <p className="text-center text-sm text-gray-500 mt-4">¿No tienes cuenta? <button type="button" onClick={() => setView('register')} className="text-[#E38F3D] font-bold hover:underline">Crea una</button></p>
@@ -66,15 +70,15 @@ export default function AuthPage() {
               <h2 className="text-2xl font-extrabold mb-6 text-[#1B2A41]">Crea tu cuenta</h2>
               <div>
                 <label className="block text-xs text-gray-500 mb-1">Usuario</label>
-                <input name="username" onChange={(e) => updateField('username', e.target.value)} className="w-full bg-[#EEF3F6] rounded-lg p-3 text-sm outline-none focus:border-[#F2A65A] border border-transparent" required />
+                <input name="username" value={formData.username} onChange={handleInputChange} className="w-full bg-[#EEF3F6] rounded-lg p-3 text-sm outline-none focus:border-[#F2A65A] border border-transparent" required />
               </div>
               <div>
                 <label className="block text-xs text-gray-500 mb-1">Correo</label>
-                <input name="email" type="email" onChange={(e) => updateField('email', e.target.value)} className="w-full bg-[#EEF3F6] rounded-lg p-3 text-sm outline-none focus:border-[#F2A65A] border border-transparent" required />
+                <input name="email" type="email" value={formData.email} onChange={handleInputChange} className="w-full bg-[#EEF3F6] rounded-lg p-3 text-sm outline-none focus:border-[#F2A65A] border border-transparent" required />
               </div>
               <div>
                 <label className="block text-xs text-gray-500 mb-1">Contraseña</label>
-                <input name="password" type="password" onChange={(e) => updateField('password', e.target.value)} className="w-full bg-[#EEF3F6] rounded-lg p-3 text-sm outline-none focus:border-[#F2A65A] border border-transparent" required />
+                <input name="password" type="password" value={formData.password} onChange={handleInputChange} className="w-full bg-[#EEF3F6] rounded-lg p-3 text-sm outline-none focus:border-[#F2A65A] border border-transparent" required />
               </div>
               <button className="w-full bg-[#1B2A41] text-white p-3 rounded-lg font-bold hover:bg-[#24384f] transition-all">Crear cuenta</button>
               <p className="text-center text-sm text-gray-500 mt-4">¿Ya tienes cuenta? <button type="button" onClick={() => setView('login')} className="text-[#E38F3D] font-bold hover:underline">Inicia sesión</button></p>

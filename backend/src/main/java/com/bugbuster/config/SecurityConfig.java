@@ -35,12 +35,9 @@ public class SecurityConfig {
             .headers(headers -> headers.frameOptions(frame -> frame.disable()))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                // Permitir solicitudes OPTIONS para CORS
                 .requestMatchers(new AntPathRequestMatcher("/**", "OPTIONS")).permitAll()
-                // Endpoints públicos de autenticación
                 .requestMatchers(new AntPathRequestMatcher("/api/auth/register")).permitAll()
                 .requestMatchers(new AntPathRequestMatcher("/api/auth/login")).permitAll()
-                // Todo lo demás requiere token
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
@@ -52,8 +49,7 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOriginPatterns(List.of("*"));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-        config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept", "Origin",
-            "X-Requested-With", "Access-Control-Request-Method", "Access-Control-Request-Headers"));
+        config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With", "Access-Control-Request-Method", "Access-Control-Request-Headers"));
         config.setExposedHeaders(List.of("Authorization"));
         config.setAllowCredentials(false);
         config.setMaxAge(3600L);

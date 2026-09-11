@@ -11,10 +11,7 @@ export function useAuthLogic() {
   const { login } = useAuth();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ 
-      ...formData, 
-      [e.target.name]: e.target.value 
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const executeLogin = async (e: React.FormEvent) => {
@@ -36,7 +33,7 @@ export function useAuthLogic() {
       toast.success('Cuenta creada con éxito');
       setView('login');
     } catch (error: any) {
-      toast.error(error.response?.data || 'Error al registrar');
+      toast.error(error.//response?.data || 'Error al registrar');
     }
   };
 
