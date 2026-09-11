@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react'; // Eliminamos la palabra 'React' aquí
 import toast from 'react-hot-toast';
 import api from '../api/axios';
 import CodeEditor from '../components/CodeEditor';
@@ -63,23 +63,27 @@ export default function Game() {
 
   return (
     <div className="h-screen bg-[#f9fafa] text-[#20303c] flex flex-col font-sans overflow-hidden">
-      
-      {/* TOPBAR - Simplificado */}
       <header className="h-14 bg-white border-b border-[#E3E7E9] px-6 flex justify-between items-center shrink-0 z-10">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-[#F2A65A] flex items-center justify-center font-mono font-bold text-[#1B2A41] text-sm">&lt;/&gt;</div>
           <h1 className="text-lg font-extrabold text-[#1B2A41]">BugBuster</h1>
         </div>
-        <button 
-          onClick={logout} 
-          className="text-xs font-bold uppercase tracking-wider bg-[#EEF3F6] hover:bg-red-50 hover:text-red-600 px-4 py-2 rounded-lg transition-all text-[#5b6b76]"
-        >
-          Salir
-        </button>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 text-xs font-semibold text-[#5b6b76]">
+            <span className="flex items-center gap-1">
+              <div className="w-2 h-2 rounded-full bg-green-500"></div> Online
+            </span>
+          </div>
+          <button 
+            onClick={logout} 
+            className="text-xs font-bold uppercase tracking-wider bg-[#EEF3F6] hover:bg-red-50 hover:text-red-600 px-4 py-2 rounded-lg transition-all text-[#5b6b76]"
+          >
+            Salir
+          </button>
+        </div>
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* SIDEBAR - Misiones Flat List */}
         <aside className="w-64 bg-white border-r border-[#E3E7E9] p-4 flex flex-col">
           <div className="text-[11px] font-bold text-[#5b6b76] uppercase tracking-widest px-3 mb-3">Misiones</div>
           <div className="flex-1 overflow-y-auto space-y-1 custom-scrollbar">
@@ -104,10 +108,7 @@ export default function Game() {
           </div>
         </aside>
 
-        {/* MAIN CONTENT */}
         <main className="flex-1 flex overflow-hidden">
-          
-          {/* PANEL IZQUIERDO - Briefing (Hoja de Misión) */}
           <div className="w-[420px] p-7 border-r border-[#E3E7E9] overflow-y-auto bg-white">
             {currentLevel ? (
               <div className="animate-in fade-in slide-in-from-left-4 duration-500">
@@ -115,7 +116,6 @@ export default function Game() {
                 <h1 className="text-2xl font-extrabold text-[#1B2A41] mb-6">{currentLevel.title}</h1>
                 
                 <div className="border border-[#E3E7E9] rounded-2xl p-6 space-y-6">
-                  {/* 1. Concepto */}
                   <div className="flex gap-4">
                     <div className="w-6 h-6 rounded-full bg-[#1B2A41] text-white text-xs font-bold flex items-center justify-center shrink-0">1</div>
                     <div>
@@ -125,10 +125,7 @@ export default function Game() {
                       </p>
                     </div>
                   </div>
-
                   <div className="h-px bg-[#E3E7E9] ml-6"></div>
-
-                  {/* 2. Tarea */}
                   <div className="flex gap-4">
                     <div className="w-6 h-6 rounded-full bg-[#1B2A41] text-white text-xs font-bold flex items-center justify-center shrink-0">2</div>
                     <div>
@@ -138,10 +135,7 @@ export default function Game() {
                       </p>
                     </div>
                   </div>
-
                   <div className="h-px bg-[#E3E7E9] ml-6"></div>
-
-                  {/* 3. Ejemplo */}
                   <div className="flex gap-4">
                     <div className="w-6 h-6 rounded-full bg-[#1B2A41] text-white text-xs font-bold flex items-center justify-center shrink-0">3</div>
                     <div>
@@ -158,9 +152,7 @@ export default function Game() {
             )}
           </div>
 
-          {/* PANEL DERECHO - Editor y Consola */}
           <div className="flex-1 flex flex-col bg-[#282a36]">
-            {/* Editor Toolbar */}
             <div className="h-12 bg-[#1e1f29] flex justify-between items-center px-4 border-b border-[#191a21]">
               <div className="bg-[#44475a] text-[#f8f8f2] text-xs font-bold px-3 py-1 rounded-md">
                 {currentLevel?.title.replace(/\s+/g, '_')}.java
@@ -172,8 +164,6 @@ export default function Game() {
                 ▶ EJECUTAR
               </button>
             </div>
-
-            {/* Editor Area */}
             <div className="flex-1 relative">
               <CodeEditor value={code} onChange={setCode} />
               {result?.success && (
@@ -182,8 +172,6 @@ export default function Game() {
                 </div>
               )}
             </div>
-
-            {/* Console Area */}
             <div className="h-48 bg-[#1e1f29] border-t border-[#191a21] p-4 flex flex-col">
               <div className="text-[10px] font-bold text-[#6272a4] uppercase tracking-widest mb-2">Salida del Sistema</div>
               <div className={`flex-1 font-mono text-sm overflow-y-auto custom-scrollbar ${
@@ -197,7 +185,6 @@ export default function Game() {
               </div>
             </div>
           </div>
-
         </main>
       </div>
     </div>
