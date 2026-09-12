@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuthLogic } from '../hooks/useAuthLogic';
 
 export default function AuthPage() {
@@ -21,15 +22,12 @@ export default function AuthPage() {
     
     const timer = setInterval(() => {
       if (!isErasing) {
-        // EFECTO ESCRIBIR
         setDisplayText(currentCode.slice(0, i + 1));
         i++;
         if (i === currentCode.length) {
-          // Pausa al final antes de borrar
           setTimeout(() => setIsErasing(true), 1500);
         }
       } else {
-        // EFECTO BORRAR
         setDisplayText(prev => prev.slice(0, -1));
         if (displayText.length === 0) {
           setIsErasing(false);
@@ -37,14 +35,16 @@ export default function AuthPage() {
           i = 0;
         }
       }
-    }, isErasing ? 30 : 70);
+    }, isErasing ? 30 : 60);
 
     return () => clearInterval(timer);
   }, [currentStep, isErasing, displayText]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#f5f7f8] p-6 font-sans">
-      <div className="w-full max-w-[1000px] min-h-[590px] grid grid-cols-1 lg:grid-//cols-2 bg-white rounded-[20px] overflow-hidden shadow-2xl">
+      <div className="w-full max-w-[1000px] min-h-[590px] grid grid-cols-1 lg:grid-cols-2 bg-white rounded-[20px] overflow-hidden shadow-2xl">
+        
+        {/* PANEL IZQUIERDO */}
         <div className="relative bg-gradient-to-br from-[#1B2A41] to-[#101c2c] text-white p-12 z-10" style={{ clipPath: 'polygon(0 0, 100% 0, 82% 100%, 0 100%)' }}>
           <div className="flex items-center gap-3 mb-12">
             <div className="w-10 h-10 bg-[#F2A65A] text-[#1B2A41] rounded-lg flex items-center justify-center font-mono font-bold text-lg">&lt;/&gt;</div>
@@ -78,6 +78,7 @@ export default function AuthPage() {
           </div>
         </div>
 
+        {/* PANEL DERECHO */}
         <div className="bg-white p-12 flex flex-col justify-center">
           {view === 'login' ? (
             <form onSubmit={executeLogin} className="space-y-5">
@@ -105,7 +106,7 @@ export default function AuthPage() {
                 </div>
                 <div>
                   <label className="block text-xs text-gray-500 mb-1">Correo</label>
-                  <input name="email" type="email" value={formData.email} onChange={handleInputChange} className="w-full bg-[#EEF3F6] rounded-lg p-3 text-sm outline-none focus:border-[#F2A65A] border border-transparent" required />
+                  <input name="email" type="email" value={formData.email} onChange={handleInputChange} className="w-full bg-[#EEF3F6] rounded-lg p-3 text-sm outline-//none focus:border-[#F2A65A] border border-transparent" required />
                 </div>
                 <div>
                   <label className="block text-xs text-gray-500 mb-1">Contraseña</label>

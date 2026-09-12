@@ -21,6 +21,19 @@ export default function Game() {
     return examples[id] || '// Escribe tu código aquí';
   };
 
+  // Función para limpiar el template y poner el marcador correcto
+  const cleanTemplate = (template: string) => {
+    return template
+      .replace('public class DynamicSolution', 'public class Main')
+      .replace('//USER_CODE', '// Aquí escribe tu código');
+  };
+
+  useEffect(() => {
+    if (currentLevel) {
+      setCode(cleanTemplate(currentLevel.template));
+    }
+  }, [currentLevel]);
+
   return (
     <div className="h-screen bg-[#f9fafa] text-[#20303c] flex flex-col font-sans overflow-hidden">
       <header className="h-14 bg-white border-b border-[#E3E7E9] px-6 flex justify-between items-center shrink-0 z-10">
@@ -63,7 +76,9 @@ export default function Game() {
                     <div className="w-6 h-6 rounded-full bg-[#1B2A41] text-white text-xs font-bold flex items-center justify-center shrink-0 mt-1">1</div>
                     <div className="flex-1">
                       <div className="text-[11px] font-bold uppercase text-[#E38F3D] mb-1 tracking-wider">Concepto</div>
-                      <p className="text-sm text-[#5b6b76] leading-relaxed text-justify">{currentLevel.hint || "Aprende la sintaxis básica de Java."}</p>
+                      <p className="text-sm text-[#5b6b76] leading-relaxed text-justify">
+                        {currentLevel.hint || "Aprende la sintaxis básica de Java."}
+                      </p>
                     </div>
                   </div>
                   <div className="h-px bg-[#E3E7E9] ml-6"></div>
@@ -96,14 +111,7 @@ export default function Game() {
               <div className="bg-[#44475a] text-[#f8f8f2] text-xs font-bold px-3 py-1 rounded-md">
                 {currentLevel ? `${currentLevel.title.replace(/\s+/g, '')}.java` : 'Main.java'}
               </div>
-              
-              {/* BOTÓN CORREGIDO: Transparente -> Verde con animación */}
-              <button 
-                onClick={submitCode} 
-                className="bg-transparent border border-[#50fa7b] text-[#50fa7b] hover:bg-[#50fa7b] hover:text-[#282a36] text-xs font-extrabold px-4 py-1.5 rounded-md transition-all duration-300 ease-in-out transform active:scale-95 shadow-sm hover:shadow-[0_0_15px_rgba(80,250,123,0.4)]"
-              >
-                EJECUTAR
-              </button>
+              <button onClick={submitCode} className="bg-[#50fa7b] hover:bg-[#42d668] text-[#282a36] text-xs font-extrabold px-4 py-1.5 rounded-md transition-all transform active:scale-95 shadow-lg">▶ EJECUTAR</button>
             </div>
             <div className="flex-1 relative">
               <CodeEditor value={code} onChange={setCode} />
@@ -119,7 +127,7 @@ export default function Game() {
                 {result ? (
                   <pre className="whitespace-pre-wrap">{result.output || result.message}</pre>
                 ) : (
-                  <span className="italic opacity-50">Escribe tu código y presiona Ejecutar...</span>
+                  <span className="italic opacity-50">Escribe tu código y presiona Ejecutar para ver el resultado...</span>
                 )}
               </div>
             </div>
