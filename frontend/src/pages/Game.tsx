@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useGameLogic } from '../hooks/useGameLogic';
 import CodeEditor from '../components/CodeEditor';
@@ -21,10 +22,9 @@ export default function Game() {
     return examples[id] || '// Escribe tu código aquí';
   };
 
-  // Función para limpiar el template y poner el marcador correcto
   const cleanTemplate = (template: string) => {
     return template
-      .replace('public class DynamicSolution', 'public class Main')
+      .replace(/public class DynamicSolution/g, 'public class Main')
       .replace('//USER_CODE', '// Aquí escribe tu código');
   };
 
@@ -76,9 +76,7 @@ export default function Game() {
                     <div className="w-6 h-6 rounded-full bg-[#1B2A41] text-white text-xs font-bold flex items-center justify-center shrink-0 mt-1">1</div>
                     <div className="flex-1">
                       <div className="text-[11px] font-bold uppercase text-[#E38F3D] mb-1 tracking-wider">Concepto</div>
-                      <p className="text-sm text-[#5b6b76] leading-relaxed text-justify">
-                        {currentLevel.hint || "Aprende la sintaxis básica de Java."}
-                      </p>
+                      <p className="text-sm text-[#5b6b76] leading-relaxed text-justify">{currentLevel.hint || "Aprende la sintaxis básica de Java."}</p>
                     </div>
                   </div>
                   <div className="h-px bg-[#E3E7E9] ml-6"></div>
@@ -127,7 +125,7 @@ export default function Game() {
                 {result ? (
                   <pre className="whitespace-pre-wrap">{result.output || result.message}</pre>
                 ) : (
-                  <span className="italic opacity-50">Escribe tu código y presiona Ejecutar para ver el resultado...</span>
+                  <span className="italic opacity-50">Escribe tu código y presiona Ejecutar...</span>
                 )}
               </div>
             </div>
