@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useGameLogic } from '../hooks/useGameLogic';
 import CodeEditor from '../components/CodeEditor';
@@ -21,18 +20,6 @@ export default function Game() {
     };
     return examples[id] || '// Escribe tu código aquí';
   };
-
-  const cleanTemplate = (template: string) => {
-    return template
-      .replace(/public class DynamicSolution/g, 'public class Main')
-      .replace('//USER_CODE', '// Aquí escribe tu código');
-  };
-
-  useEffect(() => {
-    if (currentLevel) {
-      setCode(cleanTemplate(currentLevel.template));
-    }
-  }, [currentLevel]);
 
   return (
     <div className="h-screen bg-[#f9fafa] text-[#20303c] flex flex-col font-sans overflow-hidden">
