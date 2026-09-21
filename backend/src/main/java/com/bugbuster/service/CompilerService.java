@@ -14,8 +14,6 @@ public class CompilerService {
             tempDir = new File(System.getProperty("java.io.tmpdir"), "bugbuster_" + UUID.randomUUID());
             tempDir.mkdirs();
             
-            // Java exige que la clase pública coincida con el archivo. 
-            // Forzamos Main.java para simplificar la ejecución en el servidor.
             File sourceFile = new File(tempDir, "Main.java");
             try (FileWriter fw = new FileWriter(sourceFile)) {
                 fw.write(userCode);
@@ -23,7 +21,7 @@ public class CompilerService {
 
             JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
             if (compiler == null) {
-                return new CompilationResult(false, "❌ Error: JDK no encontrado en el servidor. Se requiere un JDK completo, no solo un JRE.", null);
+                return new CompilationResult(false, "❌ Error: JDK no encontrado en el servidor.", null);
             }
 
             DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
@@ -41,7 +39,6 @@ public class CompilerService {
                 return new CompilationResult(false, sb.toString(), null);
             }
 
-            // Ejecución con timeout de 5 segundos para evitar bucles infinitos
             ProcessBuilder pb = new ProcessBuilder("java", "-cp", tempDir.getAbsolutePath(), "Main");
             pb.redirectErrorStream(true); 
             Process process = pb.start();

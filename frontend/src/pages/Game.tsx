@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useGameLogic } from '../hooks/useGameLogic';
 import CodeEditor from '../components/CodeEditor';
