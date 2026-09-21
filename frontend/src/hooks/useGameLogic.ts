@@ -39,6 +39,8 @@ export function useGameLogic() {
 
   const isLevelUnlocked = (levelId: number) => {
     if (levelId <= 5) return true;
+    // Un nivel está desbloqueado si todos los niveles del grupo anterior están completados.
+    // Grupo 1: 1-5, Grupo 2: 6-10, etc.
     const groupIndex = Math.floor((levelId - 1) / 5);
     const requiredUntil = groupIndex * 5;
     for (let i = 1; i <= requiredUntil; i++) {

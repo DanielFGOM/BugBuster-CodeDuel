@@ -27,7 +27,7 @@ export default function Game() {
       5: 'int res = 10 * 2;\nSystem.out.println(res);',
       6: 'String saludo = "Hola " + "Mundo";\nSystem.out.println(saludo);',
       7: 'boolean esDia = true;\nSystem.out.println(esDia);',
-      8: 'final int MAX = 100;\nSystem.out.println(MAX);',
+      8: 'public static void saludar() {\n  System.out.println("Hola Mundo");\n}\n// En main:\nsaludar();',
       9: 'double d = 5.5;\nint i = (int)d;\nSystem.out.println(i);',
       10: 'int resto = 10 % 3;\nSystem.out.println(resto);',
     };
