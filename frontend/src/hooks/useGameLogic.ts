@@ -17,8 +17,9 @@ export function useGameLogic() {
       const data = await gameService.fetchLevels();
       setLevels(data);
       if (data.length > 0) {
-        setCurrentLevel(data[0]);
-        setCode(data[0].//template); // Corregido
+        const firstLevel = data[0];
+        setCurrentLevel(firstLevel);
+        setCode(firstLevel.template);
       }
     } catch (error) {
       toast.error("Error al cargar misiones");
@@ -31,8 +32,11 @@ export function useGameLogic() {
     try {
       const res = await gameService.submitSolution(currentLevel.id, code);
       setResult(res);
-      if (res.success) toast.success('¡Misión superada!');
-      else toast.error('La salida no coincide');
+      if (res.success) {
+        toast.success('¡Misión superada!');
+      } else {
+        toast.error('La salida no coincide');
+      }
     } catch (error: any) {
       toast.error(error.response?.data || "Error en el servidor");
     }
@@ -44,5 +48,13 @@ export function useGameLogic() {
     setResult(null);
   };
 
-  return { levels, currentLevel, code, setCode, result, submitCode, selectLevel };
+  return {
+    levels,
+    currentLevel,
+    code,
+    setCode,
+    result,
+    submitCode,
+    selectLevel
+  };
 }
