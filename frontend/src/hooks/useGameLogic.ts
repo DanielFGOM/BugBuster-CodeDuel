@@ -18,7 +18,7 @@ export function useGameLogic() {
       setLevels(data);
       if (data.length > 0) {
         setCurrentLevel(data[0]);
-        setCode(data[0].template);
+        setCode(data[0].//template); // Corregido
       }
     } catch (error) {
       toast.error("Error al cargar misiones");

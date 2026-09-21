@@ -42,7 +42,7 @@ export default function AuthPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#f5f7f8] p-6 font-sans">
       <div className="w-full max-w-[1000px] min-h-[590px] grid grid-cols-1 lg:grid-cols-2 bg-white rounded-[20px] overflow-hidden shadow-2xl">
-        
+        {/* PANEL IZQUIERDO - DISEÑO EXACTO */}
         <div className="relative bg-gradient-to-br from-[#1B2A41] to-[#101c2c] text-white p-12 z-10" style={{ clipPath: 'polygon(0 0, 100% 0, 82% 100%, 0 100%)' }}>
           <div className="flex items-center gap-3 mb-12">
             <div className="w-10 h-10 bg-[#F2A65A] text-[#1B2A41] rounded-lg flex items-center justify-center font-mono font-bold text-lg">&lt;/&gt;</div>
@@ -76,6 +76,7 @@ export default function AuthPage() {
           </div>
         </div>
 
+        {/* PANEL DERECHO */}
         <div className="bg-white p-12 flex flex-col justify-center">
           {view === 'login' ? (
             <form onSubmit={executeLogin} className="space-y-5">

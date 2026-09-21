@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useGameLogic } from '../hooks/useGameLogic';
 import CodeEditor from '../components/CodeEditor';
@@ -10,16 +11,33 @@ export default function Game() {
   const getExampleForLevel = (id: number) => {
     const examples: Record<number, string> = {
       1: 'System.out.println("Hola Mundo");',
-      2: 'String mensaje = "Java es genial";\nSystem.out.println(mensaje);',
-      3: 'int suma = 15 + 7;\nSystem.out.println(suma);',
-      4: 'if (numero > 5) {\n  System.out.println("Mayor");\n}',
-      5: 'if (numero % 2 == 0) {\n  System.out.println("Par");\n}',
-      6: 'for (int i = 1; i <= 5; i++) {\n  System.out.println(i);\n}',
-      7: 'while (contador <= 3) {\n  System.out.println(contador);\n  contador++;\n}',
-      8: 'saludar();',
+      2: 'String msg = "Hola";\nSystem.out.println(msg);',
+      3: 'int res = 5 + 5;\nSystem.out.println(res);',
+      4: 'if (x > 0) { System.out.println("Positivo"); }',
+      // Agregamos más ejemplos reales aquí...
     };
-    return examples[id] || '// Escribe tu código aquí';
+    return examples[id] || '// Escribe el código según la tarea';
   };
+
+  const cleanTemplate = (template: string) => {
+    return template
+      .replace(/public class DynamicSolution/g, 'public class Main')
+      .replace('//USER_CODE', '// Aquí escribe tu código');
+  };
+
+  useEffect(() => {
+    if (currentLevel) {
+      setCode(cleanTemplate(currentLevel.template));
+    }
+  }, [currentLevel]);
+
+  // Agrupación de niveles por categorías para el Sidebar
+  const categories = [
+    { name: "Sintaxis Básica", range: [1, 10] },
+    { name: "Flujo de Control", range: [11, 20] },
+    { name: "Estructuras de Datos", range: [21, 35] },
+    { name: "OOP y Clases", range: [36, 50] },
+  ];
 
   return (
     <div className="h-screen bg-[#f9fafa] text-[#20303c] flex flex-col font-sans overflow-hidden">
@@ -32,21 +50,28 @@ export default function Game() {
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        <aside className="w-64 bg-white border-r border-[#E3E7E9] p-4 flex flex-col">
-          <div className="text-[11px] font-bold text-[#5b6b76] uppercase tracking-widest px-3 mb-3">Misiones</div>
-          <div className="flex-1 overflow-y-auto space-y-1 custom-scrollbar">
-            {levels.map((level, idx) => (
-              <div 
-                key={level.id} 
-                onClick={() => selectLevel(level)}
-                className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all duration-200 ${
-                  currentLevel?.id === level.id ? 'bg-[#FFF3E7] text-[#1B2A41] border-l-4 border-[#F2A65A]' : 'hover:bg-[#F3F6F7] text-[#5b6b76] border-l-4 border-transparent'
-                }`}
-              >
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${currentLevel?.id === level.id ? 'bg-[#F2A65A] text-white' : 'bg-[#E9EDEF] text-[#5b6b76]'}`}>
-                  {idx + 1}
+        <aside className="w-72 bg-white border-r border-[#E3E7E9] p-4 flex flex-col">
+          <div className="text-[11px] font-bold text-[#5b6b76] uppercase tracking-widest px-3 mb-4">Mapa de Misiones</div>
+          <div className="flex-1 overflow-y-auto space-y-6 custom-scrollbar">
+            {categories.map(cat => (
+              <div key={cat.name} className="space-y-2">
+                <h3 className="text-xs font-bold text-[#1B2A41] px-3 mb-2 opacity-60">{cat.name}</h3>
+                <div className="space-y-1">
+                  {levels.filter(l => l.id >= cat.range[0] && l.id <= cat.range[1]).map((level, idx) => (
+                    <div 
+                      key={level.id} 
+                      onClick={() => selectLevel(level)}
+                      className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all duration-200 ${
+                        currentLevel?.id === level.id ? 'bg-[#FFF3E7] text-[#1B2A41] border-l-4 border-[#F2A65A]' : 'hover:bg-[#F3F6F7] text-[#5b6b76] border-l-4 border-transparent'
+                      }`}
+                    >
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${currentLevel?.id === level.id ? 'bg-[#F2A65A] text-white' : 'bg-[#E9EDEF] text-[#5b6b76]'}`}>
+                        {level.id}
+                      </div>
+                      <span className="text-sm font-semibold">{level.title}</span>
+                    </div>
+                  ))}
                 </div>
-                <span className="text-sm font-semibold">{level.title}</span>
               </div>
             ))}
           </div>
@@ -63,7 +88,7 @@ export default function Game() {
                     <div className="w-6 h-6 rounded-full bg-[#1B2A41] text-white text-xs font-bold flex items-center justify-center shrink-0 mt-1">1</div>
                     <div className="flex-1">
                       <div className="text-[11px] font-bold uppercase text-[#E38F3D] mb-1 tracking-wider">Concepto</div>
-                      <p className="text-sm text-[#5b6b76] leading-relaxed text-justify">{currentLevel.hint || "Aprende la sintaxis básica de Java."}</p>
+                      <p className="text-sm text-[#5b6b76] leading-relaxed text-justify">{currentLevel.hint || "Aprende la base de este concepto para avanzar."}</p>
                     </div>
                   </div>
                   <div className="h-px bg-[#E3E7E9] ml-6"></div>

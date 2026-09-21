@@ -12,8 +12,6 @@ public class CompilerService {
         try {
             File tempDir = new File(System.getProperty("java.io.tmpdir"), "bugbuster");
             tempDir.mkdirs();
-            
-            // El archivo SIEMPRE se llama Main.java para evitar errores de compilación
             File sourceFile = new File(tempDir, "Main.java");
             try (FileWriter fw = new FileWriter(sourceFile)) {
                 fw.write(userCode);
@@ -33,7 +31,6 @@ public class CompilerService {
                 return new CompilationResult(false, "Error de compilación:\n" + compileOut.toString(), null);
             }
 
-            // Ejecutamos la clase Main
             ProcessBuilder pb = new ProcessBuilder("java", "-cp", tempDir.getAbsolutePath(), "Main");
             pb.redirectErrorStream(true);
             Process process = pb.start();
