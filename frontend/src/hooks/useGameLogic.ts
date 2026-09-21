@@ -15,6 +15,14 @@ export function useGameLogic() {
     loadGameData();
   }, []);
 
+  const toPascalCase = (text: string) => {
+    return text
+      .replace(/[^a-zA-Z0-9 ]/g, '')
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join('');
+  };
+
   const loadGameData = async () => {
     try {
       const data = await gameService.fetchLevels();
@@ -29,36 +37,30 @@ export function useGameLogic() {
     }
   };
 
-  useEffect(() => {
-    if (!currentLevel) return;
-    const timeoutId = setTimeout(() => {
-      localStorage.setItem(`bugbuster_code_${currentLevel.id}`, code);
-    }, 800);
-    return () => clearTimeout(timeoutId);
-  }, [code, currentLevel]);
-
-  const resetCode = () => {
-    if (!currentLevel) return;
-    if (confirm("¿Estás seguro de que quieres borrar tu progreso en este nivel?")) {
-      const initialCode = currentLevel.template.replace('//USER_CODE', '// Aquí escribe tu código');
-      setCode(initialCode);
-      localStorage.removeItem(`bugbuster_code_${currentLevel.id}`);
+  const isLevelUnlocked = (levelId: number) => {
+    if (levelId <= 5) return true;
+    const groupIndex = Math.floor((levelId - 1) / 5);
+    const requiredUntil = groupIndex * 5;
+    for (let i = 1; i <= requiredUntil; i++) {
+      if (!completedLevels.includes(i)) return false;
     }
+    return true;
   };
 
   const selectLevel = (level: Level) => {
-    if (!DEV_UNLOCK_ALL) {
-      const prevLevelId = level.id - 1;
-      if (prevLevelId > 0 && !completedLevels.includes(prevLevelId)) {
-        toast.error(`Completa primero el nivel ${prevLevelId}`);
-        return;
-      }
+    if (!DEV_UNLOCK_ALL && !isLevelUnlocked(level.id)) {
+      toast.error("Este nivel está bloqueado. ¡Completa los grupos anteriores primero!");
+      return;
     }
     
     setCurrentLevel(level);
     setResult(null);
-    const saved = localStorage.getItem(`bugbuster_code_${level.id}`);
-    setCode(saved || level.template.replace('//USER_CODE', '// Aquí escribe tu código'));
+
+    const className = toPascalCase(level.title);
+    const initialCode = `public class ${className} {\n    public static void main(String[] args) {\n        // Escribe tu código aquí\n    }\n}`;
+    
+    const savedCode = localStorage.getItem(`bugbuster_code_${level.id}`);
+    setCode(savedCode || initialCode);
   };
 
   const submitCode = async () => {
@@ -73,6 +75,9 @@ export function useGameLogic() {
           const newProgress = [...completedLevels, currentLevel.id];
           setCompletedLevels(newProgress);
           localStorage.setItem('bugbuster_progress', JSON.stringify(newProgress));
+          if (currentLevel.id % 5 === 0) {
+            toast.success("🎉 ¡Felicidades! Has desbloqueado un nuevo grupo de misiones.");
+          }
         }
       } else {
         toast.error(res.message || 'La salida no coincide');
@@ -82,7 +87,21 @@ export function useGameLogic() {
     }
   };
 
+  useEffect(() => {
+    if (currentLevel) {
+      localStorage.setItem(`bugbuster_code_${currentLevel.id}`, code);
+    }
+  }, [code, currentLevel]);
+
+  const resetCode = () => {
+    if (!currentLevel) return;
+    const className = toPascalCase(currentLevel.title);
+    const initialCode = `public class ${className} {\n    public static void main(String[] args) {\n        // Escribe tu código aquí\n    }\n}`;
+    setCode(initialCode);
+    localStorage.removeItem(`bugbuster_code_${currentLevel.id}`);
+  };
+
   return {
-    levels, currentLevel, code, setCode, result, submitCode, selectLevel, completedLevels, resetCode
+    levels, currentLevel, code, setCode, result, submitCode, selectLevel, completedLevels, isLevelUnlocked, resetCode
   };
 }

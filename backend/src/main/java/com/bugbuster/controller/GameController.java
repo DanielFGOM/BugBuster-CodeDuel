@@ -45,11 +45,8 @@ public class GameController {
             return ResponseEntity.badRequest().body(new SubmitResponse(false, "Nivel no encontrado", null));
         }
 
-        String fullCode = level.getTemplate().contains("//USER_CODE") 
-                      ? level.getTemplate().replace("//USER_CODE", request.getCode()) 
-                      : request.getCode();
-
-        CompilerService.CompilationResult result = compilerService.compileAndRun(fullCode, level.getExpectedOutput());
+        // Enviamos el código tal cual, sin templates.
+        CompilerService.CompilationResult result = compilerService.compileAndRun(request.getCode(), level.getExpectedOutput());
 
         if (!result.isSuccess()) {
             progressService.incrementAttempts(user, level);

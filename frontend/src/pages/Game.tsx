@@ -5,7 +5,18 @@ import GameCanvas from '../components/GameCanvas';
 
 export default function Game() {
   const { logout } = useAuth();
-  const { levels, currentLevel, code, setCode, result, submitCode, selectLevel, completedLevels, resetCode } = useGameLogic();
+  const { 
+    levels, currentLevel, code, setCode, result, 
+    submitCode, selectLevel, completedLevels, isLevelUnlocked, resetCode 
+  } = useGameLogic();
+
+  const getFileName = (title: string) => {
+    return title
+      .replace(/[^a-zA-Z0-9 ]/g, '')
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join('') + '.java';
+  };
 
   const getExampleForLevel = (id: number) => {
     const examples: Record<number, string> = {
@@ -51,8 +62,8 @@ export default function Game() {
                   {levels
                     .filter(l => l.id >= cat.range[0] && l.id <= cat.range[1])
                     .map((level) => {
-                      const isCompleted = completedLevels.includes(level.id);
-                      const isLocked = level.id > 1 && !completedLevels.includes(level.id - 1);
+                      const isDone = completedLevels.includes(level.id);
+                      const isLocked = !isLevelUnlocked(level.id);
                       const isActive = currentLevel?.id === level.id;
 
                       return (
@@ -66,12 +77,12 @@ export default function Game() {
                           }`}
                         >
                           <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                            isActive ? 'bg-[#F2A65A] text-white' : isCompleted ? 'bg-green-500 text-white' : isLocked ? 'bg-gray-300 text-gray-600' : 'bg-[#E9EDEF] text-[#5b6b76]'
+                            isActive ? 'bg-[#F2A65A] text-white' : isDone ? 'bg-green-500 text-white' : isLocked ? 'bg-gray-300 text-gray-600' : 'bg-[#E9EDEF] text-[#5b6b76]'
                           }`}>
                             {isLocked ? '🔒' : level.id}
                           </div>
                           <span className="text-sm font-semibold">{level.title}</span>
-                          {isCompleted && <span className="ml-auto text-green-500 text-xs">✓</span>}
+                          {isDone && <span className="ml-auto text-green-500 text-xs">✓</span>}
                         </div>
                       );
                     })}
@@ -123,7 +134,9 @@ export default function Game() {
           <div className="flex-1 flex flex-col bg-[#282a36]">
             <div className="h-12 bg-[#1e1f29] flex justify-between items-center px-4 border-b border-[#191a21]">
               <div className="flex items-center gap-3">
-                <div className="bg-[#44475a] text-[#f8f8f2] text-xs font-bold px-3 py-1 rounded-md">Main.java</div>
+                <div className="bg-[#44475a] text-[#f8f8f2] text-xs font-bold px-3 py-1 rounded-md">
+                  {currentLevel ? getFileName(currentLevel.title) : 'Main.java'}
+                </div>
                 <button onClick={resetCode} className="text-[10px] text-gray-400 hover:text-white underline">Restablecer</button>
               </div>
               <button onClick={submitCode} className="bg-[#50fa7b] hover:bg-[#42d668] text-[#282a36] text-xs font-extrabold px-4 py-1.5 rounded-md transition-all transform active:scale-95 shadow-lg">EJECUTAR</button>
