@@ -45,15 +45,23 @@ public class GameController {
             return ResponseEntity.badRequest().body(new SubmitResponse(false, "Nivel no encontrado", null));
         }
 
-        String fullCode = level.getTemplate().replace("//USER_CODE", request.getCode());
+        String fullCode = level.getTemplate().contains("//USER_CODE") 
+                      ? level.getTemplate().replace("//USER_CODE", request.getCode()) 
+                      : request.getCode();
+
         CompilerService.CompilationResult result = compilerService.compileAndRun(fullCode, level.getExpectedOutput());
 
-        if (result.isSuccess() && result.getOutput() != null && result.getOutput().trim().equals(level.getExpectedOutput().trim())) {
+        if (!result.isSuccess()) {
+            progressService.incrementAttempts(user, level);
+            return ResponseEntity.ok(new SubmitResponse(false, result.getMessage(), result.getOutput()));
+        }
+
+        if (result.getOutput() != null && result.getOutput().trim().equals(level.getExpectedOutput().trim())) {
             progressService.markCompleted(user, level, 100);
             return ResponseEntity.ok(new SubmitResponse(true, "¡Nivel superado!", result.getOutput()));
         } else {
             progressService.incrementAttempts(user, level);
-            return ResponseEntity.ok(new SubmitResponse(false, result.getMessage(), result.getOutput()));
+            return ResponseEntity.ok(new SubmitResponse(false, "La salida no coincide", result.getOutput()));
         }
     }
 }

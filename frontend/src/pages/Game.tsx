@@ -6,64 +6,42 @@ import GameCanvas from '../components/GameCanvas';
 
 export default function Game() {
   const { logout } = useAuth();
-  const { levels, currentLevel, code, setCode, result, submitCode, selectLevel } = useGameLogic();
+  const { levels, currentLevel, code, setCode, result, submitCode, selectLevel, completedLevels, resetCode } = useGameLogic();
 
-  // 1. Lógica de Ejemplos Dinámicos
   const getExampleForLevel = (id: number) => {
     const examples: Record<number, string> = {
-      1: 'System.out.println("Hola Mundo");',
-      2: 'String mensaje = "Java es genial";\nSystem.out.println(mensaje);',
-      3: 'int suma = 15 + 7;\nSystem.out.println(suma);',
-      4: 'if (numero > 5) {\n  System.out.println("Mayor");\n}',
-      5: 'if (numero % 2 == 0) {\n  System.out.println("Par");\n}',
-      6: 'for (int i = 1; i <= 5; i++) {\n  System.out.println(i);\n}',
-      7: 'while (contador <= 3) {\n  System.out.println(contador);\n  contador++;\n}',
-      8: 'saludar();',
+      1: 'System.out.println("Bienvenido a Java");',
+      2: 'int edad = 20;\nSystem.out.println(edad);',
+      3: 'String ciudad = "Madrid";\nSystem.out.println(ciudad);',
+      4: 'double pi = 3.14;\nSystem.out.println(pi);',
+      5: 'int res = 10 * 2;\nSystem.out.println(res);',
+      6: 'String saludo = "Hola " + "Mundo";\nSystem.out.println(saludo);',
+      7: 'boolean esDia = true;\nSystem.out.println(esDia);',
+      8: 'final int MAX = 100;\nSystem.out.println(MAX);',
+      9: 'double d = 5.5;\nint i = (int)d;\nSystem.out.println(i);',
+      10: 'int resto = 10 % 3;\nSystem.out.println(resto);',
     };
-    return examples[id] || '// Escribe tu código aquí';
+    return examples[id] || '// Ejemplo: System.out.println("Tu código aquí");';
   };
 
-  // 2. Lógica de limpieza de Template (Sincronización con Backend)
-  const cleanTemplate = (template: string) => {
-    return template
-      .replace(/public class DynamicSolution/g, 'public class Main')
-      .replace('//USER_CODE', '// Aquí escribe tu código');
-  };
-
-  // Sincronizar el editor cuando cambia el nivel
-  useEffect(() => {
-    if (currentLevel) {
-      setCode(cleanTemplate(currentLevel.template));
-    }
-  }, [currentLevel, setCode]);
-
-  // 3. Definición de Categorías para el Sidebar
   const categories = [
-    { name: "Sintaxis Básica", range: [1, 10] },
-    { name: "Flujo de Control", range: [11, 20] },
-    { name: "Estructuras de Datos", range: [21, 35] },
+    { name: "Sintaxis Básica", range: [1, 12] },
+    { name: "Flujo de Control", range: [13, 25] },
+    { name: "Estructuras de Datos", range: [26, 35] },
     { name: "OOP y Clases", range: [36, 50] },
   ];
 
   return (
     <div className="h-screen bg-[#f9fafa] text-[#20303c] flex flex-col font-sans overflow-hidden">
-      
-      {/* TOPBAR */}
       <header className="h-14 bg-white border-b border-[#E3E7E9] px-6 flex justify-between items-center shrink-0 z-10">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-[#F2A65A] flex items-center justify-center font-mono font-bold text-[#1B2A41] text-sm">&lt;/&gt;</div>
           <h1 className="text-lg font-extrabold text-[#1B2A41] font-['Space_Grotesk']">BugBuster</h1>
         </div>
-        <button 
-          onClick={logout} 
-          className="text-xs font-bold uppercase tracking-wider bg-[#EEF3F6] hover:bg-red-100 hover:text-red-600 px-4 py-2 rounded-lg transition-all text-[#5b6b76]"
-        >
-          Salir
-        </button>
+        <button onClick={logout} className="text-xs font-bold uppercase tracking-wider bg-[#EEF3F6] hover:bg-red-100 hover:text-red-600 px-4 py-2 rounded-lg transition-all text-[#5b6b76]">Salir</button>
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* SIDEBAR CON CATEGORÍAS RESTAURADAS */}
         <aside className="w-72 bg-white border-r border-[#E3E7E9] p-4 flex flex-col">
           <div className="text-[11px] font-bold text-[#5b6b76] uppercase tracking-widest px-3 mb-4">Mapa de Misiones</div>
           <div className="flex-1 overflow-y-auto space-y-6 custom-scrollbar">
@@ -73,34 +51,38 @@ export default function Game() {
                 <div className="space-y-1">
                   {levels
                     .filter(l => l.id >= cat.range[0] && l.id <= cat.range[1])
-                    .map((level) => (
-                      <div 
-                        key={level.id} 
-                        onClick={() => selectLevel(level)}
-                        className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all duration-200 ${
-                          currentLevel?.id === level.id 
-                          ? 'bg-[#FFF3E7] text-[#1B2A41] border-l-4 border-[#F2A65A]' 
-                          : 'hover:bg-[#F3F6F7] text-[#5b6b76] border-l-4 border-transparent'
-                        }`}
-                      >
-                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                          currentLevel?.id === level.id ? 'bg-[#F2A65A] text-white' : 'bg-[#E9EDEF] text-[#5b6b76]'
-                        }`}>
-                          {level.id}
+                    .map((level) => {
+                      const isCompleted = completedLevels.includes(level.id);
+                      const isLocked = level.id > 1 && !completedLevels.includes(level.id - 1);
+                      const isActive = currentLevel?.id === level.id;
+
+                      return (
+                        <div 
+                          key={level.id} 
+                          onClick={() => !isLocked && selectLevel(level)}
+                          className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all duration-200 ${
+                            isActive ? 'bg-[#FFF3E7] text-[#1B2A41] border-l-4 border-[#F2A65A]' : 
+                            isLocked ? 'opacity-50 cursor-not-allowed text-gray-400 border-l-4 border-transparent' : 
+                            'hover:bg-[#F3F6F7] text-[#5b6b76] border-l-4 border-transparent'
+                          }`}
+                        >
+                          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                            isActive ? 'bg-[#F2A65A] text-white' : isCompleted ? 'bg-green-500 text-white' : isLocked ? 'bg-gray-300 text-gray-600' : 'bg-[#E9EDEF] text-[#5b6b76]'
+                          }`}>
+                            {isLocked ? '🔒' : level.id}
+                          </div>
+                          <span className="text-sm font-semibold">{level.title}</span>
+                          {isCompleted && <span className="ml-auto text-green-500 text-xs">✓</span>}
                         </div>
-                        <span className="text-sm font-semibold">{level.title}</span>
-                      </div>
-                    ))}
+                      );
+                    })}
                 </div>
               </div>
             ))}
           </div>
         </aside>
 
-        {/* MAIN AREA */}
         <main className="flex-1 flex overflow-hidden">
-          
-          {/* PANEL IZQUIERDO - Briefing */}
           <div className="w-[420px] p-7 border-r border-[#E3E7E9] overflow-y-auto bg-white">
             {currentLevel ? (
               <div className="animate-in fade-in slide-in-from-left-4 duration-500">
@@ -111,7 +93,7 @@ export default function Game() {
                     <div className="w-6 h-6 rounded-full bg-[#1B2A41] text-white text-xs font-bold flex items-center justify-center shrink-0 mt-1">1</div>
                     <div className="flex-1">
                       <div className="text-[11px] font-bold uppercase text-[#E38F3D] mb-1 tracking-wider">Concepto</div>
-                      <p className="text-sm text-[#5b6b76] leading-relaxed text-justify">{currentLevel.hint || "Aprende la base de este concepto para avanzar."}</p>
+                      <p className="text-sm text-[#5b6b76] leading-relaxed text-justify">{currentLevel.hint}</p>
                     </div>
                   </div>
                   <div className="h-px bg-[#E3E7E9] ml-6"></div>
@@ -124,7 +106,7 @@ export default function Game() {
                   </div>
                   <div className="h-px bg-[#E3E7E9] ml-6"></div>
                   <div className="flex gap-4 items-start">
-                    <div className="w-6 h-6 rounded-//full bg-[#1B2A41] text-white text-xs font-bold flex items-center justify-center shrink-0 mt-1">3</div>
+                    <div className="w-6 h-6 rounded-full bg-[#1B2A41] text-white text-xs font-bold flex items-center justify-center shrink-0 mt-1">3</div>
                     <div className="flex-1">
                       <div className="text-[11px] font-bold uppercase text-[#E38F3D] mb-1 tracking-wider">Ejemplo</div>
                       <div className="bg-[#20303c] text-[#7FE0A8] font-mono text-xs p-4 rounded-xl mt-2 shadow-inner whitespace-pre-wrap leading-relaxed">
@@ -139,18 +121,13 @@ export default function Game() {
             )}
           </div>
 
-          {/* PANEL DERECHO - Editor y Consola */}
           <div className="flex-1 flex flex-col bg-[#282a36]">
             <div className="h-12 bg-[#1e1f29] flex justify-between items-center px-4 border-b border-[#191a21]">
-              <div className="bg-[#44475a] text-[#f8f8f2] text-xs font-bold px-3 py-1 rounded-md">
-                {currentLevel ? `${currentLevel.title.replace(/\s+/g, '')}.java` : 'Main.java'}
+              <div className="flex items-center gap-3">
+                <div className="bg-[#44475a] text-[#f8f8f2] text-xs font-bold px-3 py-1 rounded-md">Main.java</div>
+                <button onClick={resetCode} className="text-[10px] text-gray-400 hover:text-white underline">Restablecer</button>
               </div>
-              <button 
-                onClick={submitCode} 
-                className="bg-[#50fa7b] hover:bg-[#42d668] text-[#282a36] text-xs font-extrabold px-4 py-1.5 rounded-md transition-all transform active:scale-95 shadow-lg"
-              >
-                EJECUTAR
-              </button>
+              <button onClick={submitCode} className="bg-[#50fa7b] hover:bg-[#42d668] text-[#282a36] text-xs font-extrabold px-4 py-1.5 rounded-md transition-all transform active:scale-95 shadow-lg">EJECUTAR</button>
             </div>
             <div className="flex-1 relative">
               <CodeEditor value={code} onChange={setCode} />

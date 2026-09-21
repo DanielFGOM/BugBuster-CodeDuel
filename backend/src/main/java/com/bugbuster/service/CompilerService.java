@@ -4,63 +4,88 @@ import org.springframework.stereotype.Service;
 import javax.tools.*;
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class CompilerService {
-
     public CompilationResult compileAndRun(String userCode, String expectedOutput) {
+        File tempDir = null;
         try {
-            File tempDir = new File(System.getProperty("java.io.tmpdir"), "bugbuster");
+            tempDir = new File(System.getProperty("java.io.tmpdir"), "bugbuster_" + UUID.randomUUID());
             tempDir.mkdirs();
+            
+            // Java exige que la clase pública coincida con el archivo. 
+            // Forzamos Main.java para simplificar la ejecución en el servidor.
             File sourceFile = new File(tempDir, "Main.java");
             try (FileWriter fw = new FileWriter(sourceFile)) {
                 fw.write(userCode);
             }
 
             JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+            if (compiler == null) {
+                return new CompilationResult(false, "❌ Error: JDK no encontrado en el servidor. Se requiere un JDK completo, no solo un JRE.", null);
+            }
+
             DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
             StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, null);
             Iterable<? extends JavaFileObject> fileObjects = fileManager.getJavaFileObjects(sourceFile);
 
-            ByteArrayOutputStream compileOut = new ByteArrayOutputStream();
-            PrintWriter compileWriter = new PrintWriter(compileOut);
-            boolean success = compiler.getTask(compileWriter, fileManager, diagnostics, null, null, fileObjects).call();
-            compileWriter.flush();
+            StringWriter compileOut = new StringWriter();
+            boolean success = compiler.getTask(new PrintWriter(compileOut), fileManager, diagnostics, null, null, fileObjects).call();
             
             if (!success) {
-                return new CompilationResult(false, "Error de compilación:\n" + compileOut.toString(), null);
+                StringBuilder sb = new StringBuilder("❌ Error de compilación:\n");
+                for (Diagnostic<? extends JavaFileObject> diagnostic : diagnostics.getDiagnostics()) {
+                    sb.append(String.format("Línea %d: %s\n", diagnostic.getLineNumber(), diagnostic.getMessage(null)));
+                }
+                return new CompilationResult(false, sb.toString(), null);
             }
 
+            // Ejecución con timeout de 5 segundos para evitar bucles infinitos
             ProcessBuilder pb = new ProcessBuilder("java", "-cp", tempDir.getAbsolutePath(), "Main");
-            pb.redirectErrorStream(true);
+            pb.redirectErrorStream(true); 
             Process process = pb.start();
+            
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             StringBuilder output = new StringBuilder();
             String line;
             while ((line = reader.readLine()) != null) {
                 output.append(line).append("\n");
             }
-            process.waitFor();
+            
+            if (!process.waitFor(5, TimeUnit.SECONDS)) {
+                process.destroyForcibly();
+                return new CompilationResult(false, "❌ Error: Tiempo de ejecución excedido (Timeout)", null);
+            }
 
             String actualOutput = output.toString().trim();
             boolean passed = expectedOutput != null && actualOutput.equals(expectedOutput.trim());
 
-            return new CompilationResult(true, passed ? "¡Correcto!" : "Salida incorrecta", actualOutput);
-
+            return new CompilationResult(true, passed ? "¡Correcto!" : "La salida no coincide", actualOutput);
         } catch (Exception e) {
-            return new CompilationResult(false, "Error del sistema: " + e.getMessage(), null);
+            return new CompilationResult(false, "❌ Error del sistema: " + e.getMessage(), null);
+        } finally {
+            if (tempDir != null) deleteDirectory(tempDir);
         }
     }
 
-    public static class CompilationResult {
-        private boolean success;
-        private String message;
-        private String output;
+    private void deleteDirectory(File directory) {
+        File[] allContents = directory.listFiles();
+        if (allContents != null) {
+            for (File file : allContents) {
+                if (file.isDirectory()) deleteDirectory(file);
+                else file.delete();
+            }
+        }
+        directory.delete();
+    }
 
+    public static class CompilationResult {
+        private final boolean success;
+        private final String message;
+        private final String output;
         public CompilationResult(boolean success, String message, String output) {
-            this.success = success;
-            this.message = message;
-            this.output = output;
+            this.success = success; this.message = message; this.output = output;
         }
         public boolean isSuccess() { return success; }
         public String getMessage() { return message; }
