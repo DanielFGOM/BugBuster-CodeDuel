@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuthLogic } from '../hooks/useAuthLogic';
+import GoogleSignInButton from '../components/GoogleSignInButton';
 
 export default function AuthPage() {
   const { view, setView, formData, handleInputChange, executeLogin, executeRegister } = useAuthLogic();
@@ -67,6 +68,8 @@ export default function AuthPage() {
                 <div><label className="block text-xs text-gray-500 mb-1">Contraseña</label><input name="password" type="password" value={formData.password} onChange={handleInputChange} className="w-full bg-[#EEF3F6] rounded-lg p-3 text-sm outline-none focus:ring-2 ring-[#F4A85A] border border-transparent" required /></div>
               </div>
               <button className="w-full bg-[#1B2A41] text-white p-3 rounded-lg font-bold hover:bg-[#24384f] transition-all active:scale-95">Entrar a BugBuster</button>
+              <div className="my-5 flex items-center gap-3 text-[10px] uppercase tracking-widest text-gray-400"><div className="h-px flex-1 bg-gray-200" /><span>o continúa con</span><div className="h-px flex-1 bg-gray-200" /></div>
+              <GoogleSignInButton />
               <p className="text-center text-sm text-gray-500 mt-4">¿No tienes cuenta? <button type="button" onClick={() => setView('register')} className="text-[#F4A85A] font-bold hover:underline">Crea una</button></p>
             </form>
           ) : (
@@ -78,6 +81,8 @@ export default function AuthPage() {
                 <div><label className="block text-xs text-gray-500 mb-1">Contraseña</label><input name="password" type="password" value={formData.password} onChange={handleInputChange} className="w-full bg-[#EEF3F6] rounded-lg p-3 text-sm outline-none focus:ring-2 ring-[#F4A85A] border border-transparent" required /></div>
               </div>
               <button className="w-full bg-[#1B2A41] text-white p-3 rounded-lg font-bold hover:bg-[#24384f] transition-all active:scale-95">Crear cuenta</button>
+              <div className="my-5 flex items-center gap-3 text-[10px] uppercase tracking-widest text-gray-400"><div className="h-px flex-1 bg-gray-200" /><span>o continúa con</span><div className="h-px flex-1 bg-gray-200" /></div>
+              <GoogleSignInButton />
               <p className="text-center text-sm text-gray-500 mt-4">¿Ya tienes cuenta? <button type="button" onClick={() => setView('login')} className="text-[#F4A85A] font-bold hover:underline">Inicia sesión</button></p>
             </form>
           )}

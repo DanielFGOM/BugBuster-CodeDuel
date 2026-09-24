@@ -17,7 +17,7 @@ export default function GameCanvas({ levelId, result }: Props) {
     // Dibujo simple de recompensa
     ctx.fillStyle = '#50fa7b';
     ctx.font = 'bold 16px monospace';
-    ctx.fillText('✅ BUG FIX!', 40, 75);
+    ctx.fillText('✓ MISIÓN SUPERADA', 24, 75);
     
     ctx.fillStyle = '#f8f8f2';
     ctx.fillRect(20, 85, 160, 5);
