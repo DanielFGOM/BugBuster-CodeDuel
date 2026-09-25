@@ -88,7 +88,7 @@ public class LearnJavaApplication {
                 "Un método agrupa instrucciones para poder reutilizarlas. Un método estático puede llamarse desde main.",
                 "Hola Mundo"),
             level(10, "Array",
-                "Declara un array de enteros con {10, 20, 30} e imprime solamente su primer elemento.",
+                "Declara un array de enteros con  {10, 20, 30} e imprime solamente su primer elemento.",
                 "Un array guarda varios valores del mismo tipo. El primer índice siempre es 0.",
                 "10"),
 
