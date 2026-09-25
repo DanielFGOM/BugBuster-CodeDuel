@@ -12,7 +12,6 @@ Juego educativo Full Stack para aprender Java resolviendo retos de código mient
 - JPA / Hibernate
 - PostgreSQL
 - Maven
-
 ### Frontend
 - React 18
 - TypeScript
